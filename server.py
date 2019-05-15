@@ -19,7 +19,7 @@ async def broadcast(msg, origin=None):
 	"""Broadcast a message to all clients, except its origin (if applicable)"""
 	for client in clients:
 		if client is not origin:
-			await client.send_json(resp)
+			await client.send_json(msg)
 
 @route.get("/")
 async def home(req):
