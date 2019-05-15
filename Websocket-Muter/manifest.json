@@ -1,0 +1,9 @@
+{
+	"manifest_version": 2,
+	"name": "WebSocket Tab Muter",
+	"description": "In response to a signal from a websocket, mutes/unmutes all tabs",
+	"version": "0.1",
+	"background": {
+		"scripts": ["muter.js"]
+	}
+}
