@@ -5,7 +5,7 @@ import json
 import socket
 import asyncio
 import hashlib
-from aiohttp import web, WSMsgType
+from aiohttp import web, WSMsgType, WSCloseCode
 
 app = web.Application()
 route = web.RouteTableDef()
@@ -42,6 +42,11 @@ async def websocket(req):
 	await ws.close()
 
 app.router.add_routes(route) # Has to be _after_ all the routes are created
+async def on_shutdown(app):
+	for client in clients:
+		await client.close(code=WSCloseCode.GOING_AWAY, message="Server shutting down")
+app.on_shutdown.append(on_shutdown)
+
 async def serve_http(loop, port, sock=None):
 	await runner.setup()
 	if sock:
