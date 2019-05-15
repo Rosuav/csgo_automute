@@ -1,16 +1,16 @@
 CS:GO Auto-Muter
 ================
 
-Plan: Listen to CS:GO's game-state integration and automatically mute things
-whenever you're in a match, and unmute them afterwards.
+Automatically mute distractions whenever you're in a Counter-Strike match.
 
-Requirements:
-* GSI listener. Lift from private repo.
-  - Requires a web server.
+Uses CS:GO's [game state integrations](https://developer.valvesoftware.com/wiki/Counter-Strike:_Global_Offensive_Game_State_Integration)
+to notice whenever you're in a match, and mute every Chrome tab that's playing
+audio. Will unmute when you're out of a match, but only the tabs that it muted
+(so you can manually mute a tab and it'll stay muted). There is currently no
+way to request that a particular tab remain unmuted.
+
+TODO:
 * VLC integration. Can be done with TELNET interface, or a dedicated extension.
   - TELNET interface requires communication of the password.
   - Extension - can it pause and unpause in response to a websocket? If not,
     can it do so in response to an outgoing telnet connection?
-* Chrome integration.
-  - Needs an extension
-  - Will use a websocket to communicate with the same web server as GSI uses.
