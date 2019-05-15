@@ -21,3 +21,21 @@ function manage(f)
 {
 	chrome.tabs.query({}, tabs => tabs.forEach(f));
 }
+
+//Connect to a web socket on localhost
+//Adjust this if you put the server onto a different port
+let socket = null;
+function setup_socket() {
+	socket = new WebSocket("ws://localhost:27013/ws");
+	socket.onopen = () => console.log("Socket connection established.");
+	socket.onmessage = ev => {
+		const msg = JSON.parse(ev.data);
+		if (msg && msg.type === "quiet") manage(msg.data ? mute : unmute);
+	};
+	socket.onclose = () => {socket = null; setTimeout(setup_socket, 5000);};
+}
+setup_socket();
+
+function socksend(type, data) {
+	if (socket) socket.send(JSON.stringify({type, data}));
+}
