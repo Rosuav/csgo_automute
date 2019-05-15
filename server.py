@@ -42,6 +42,7 @@ async def websocket(req):
 
 	clients.remove(ws)
 	await ws.close()
+	return ws
 
 @route.post("/gsi")
 async def update_configs(req):
