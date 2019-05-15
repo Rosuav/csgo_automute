@@ -105,7 +105,7 @@ async def listen(port):
 def run(*, httpport=27013, byteport=27012, sock=None):
 	loop = asyncio.get_event_loop()
 	loop.run_until_complete(serve_http(loop, httpport, sock))
-	asyncio.ensure_future(listen(byteport))
+	# asyncio.ensure_future(listen(byteport)) # Disabled for testing
 	# TODO: Announce that we're "ready" in whatever way
 	try: loop.run_forever()
 	except KeyboardInterrupt: pass
