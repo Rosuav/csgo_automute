@@ -75,9 +75,37 @@ async def serve_http(loop, port, sock=None):
 		await web.TCPSite(runner, "0.0.0.0", port).start()
 		print("Listening on port", port)
 
-def run(port=27013, sock=None):
+class ByteClient:
+	def __init__(self, writer):
+		self.writer = writer
+	async def send_json(self, msg): # A bit hacky but whatever
+		self.writer.write(b"1" if msg["data"] else b"0")
+		await self.writer.drain()
+	async def close(self, *a, **kw): self.writer.close()
+async def byteclient(reader, writer):
+	peer = writer.transport.get_extra_info("peername")[:2]
+	print("Received connection from %s:%s" % peer)
+	writer.write(b"1" if quiet else b"0")
+	await writer.drain()
+	cli = ByteClient(writer)
+	clients.append(cli)
+	while True:
+		data = await reader.read(256)
+		if not data: break
+		# No backflow info as yet
+	clients.remove(cli)
+	writer.close()
+	print("Disconnected from %s:%s" % peer)
+
+async def listen(port):
+	mainsock = await asyncio.start_server(byteclient, port=port)
+	print("Listening:", ", ".join("%s:%s" % s.getsockname()[:2] for s in mainsock.sockets))
+	await mainsock.serve_forever()
+
+def run(*, httpport=27013, byteport=27012, sock=None):
 	loop = asyncio.get_event_loop()
-	loop.run_until_complete(serve_http(loop, port, sock))
+	loop.run_until_complete(serve_http(loop, httpport, sock))
+	asyncio.ensure_future(listen(byteport))
 	# TODO: Announce that we're "ready" in whatever way
 	try: loop.run_forever()
 	except KeyboardInterrupt: pass
@@ -97,4 +125,5 @@ if __name__ == '__main__':
 		# The sd_listen_fds docs say that they should start at FD 3.
 		sock = socket.socket(fileno=3)
 		print("Got %d socket(s)" % fd_count, file=sys.stderr)
-	run(port=int(os.environ.get("PORT", "27013")), sock=sock)
+		# TODO: Handle two sockets and two port numbers
+	run(httpport=int(os.environ.get("PORT", "27013")), sock=sock)
