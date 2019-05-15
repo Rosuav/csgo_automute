@@ -7,11 +7,13 @@ import asyncio
 import hashlib
 from aiohttp import web, WSMsgType, WSCloseCode
 
+QUIET_PHASES = {"warmup", "live", "gameover", "intermission"} # Could be a frozenset but there's no literal for it
+
 app = web.Application()
 route = web.RouteTableDef()
 runner = web.AppRunner(app)
 clients = []
-state = "play"
+quiet = False
 
 async def broadcast(msg, origin=None):
 	"""Broadcast a message to all clients, except its origin (if applicable)"""
@@ -29,7 +31,7 @@ async def websocket(req):
 	await ws.prepare(req)
 	clients.append(ws)
 
-	await ws.send_json({"type": "state", "data": state});
+	await ws.send_json({"type": "quiet", "data": quiet})
 	async for msg in ws:
 		# Ignore non-JSON messages
 		if msg.type != WSMsgType.TEXT: continue
@@ -40,6 +42,22 @@ async def websocket(req):
 
 	clients.remove(ws)
 	await ws.close()
+
+@route.post("/gsi")
+async def update_configs(req):
+	data = await req.json()
+	if "previously" in data: del data["previously"] # These two are always uninteresting.
+	if "added" in data: del data["added"]
+	# from pprint import pprint; pprint(data)
+	phase = data.get("map", {}).get("phase")
+	new_quiet = phase in QUIET_PHASES
+	global quiet
+	if new_quiet != quiet:
+		quiet = new_quiet
+		if quiet: print("Muting - phase is", phase)
+		else: print("Unmuting - phase is", phase)
+		await broadcast({"type": "quiet", "data": quiet})
+	return web.Response(text="") # Response doesn't matter
 
 app.router.add_routes(route) # Has to be _after_ all the routes are created
 async def on_shutdown(app):
@@ -78,4 +96,4 @@ if __name__ == '__main__':
 		# The sd_listen_fds docs say that they should start at FD 3.
 		sock = socket.socket(fileno=3)
 		print("Got %d socket(s)" % fd_count, file=sys.stderr)
-	run(port=int(os.environ.get("PORT", "8080")), sock=sock)
+	run(port=int(os.environ.get("PORT", "27013")), sock=sock)
