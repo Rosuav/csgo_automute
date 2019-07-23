@@ -1,3 +1,8 @@
+//TODO: Have some hotkeys:
+//1) Local to Chrome: Toggle mute of this tab (even if not muted by this extn)
+//2) Local to Chrome: Flag this tab to not be muted for the next 30 secs
+//3) Global: Mute everything ==> manage(mute)
+//4) Global: Unmute everything, ditto
 console.log("Chrome:", chrome);
 function mute(tab)
 {
