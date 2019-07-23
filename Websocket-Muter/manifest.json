@@ -5,5 +5,21 @@
 	"version": "0.1",
 	"background": {
 		"scripts": ["muter.js"]
+	},
+	"commands": {
+		"mute-now": {
+			"suggested_key": {
+				"default": "Ctrl+Shift+5"
+			},
+			"description": "Mute all noisy tabs now",
+			"global": true
+		},
+		"unmute-now": {
+			"suggested_key": {
+				"default": "Ctrl+Shift+6"
+			},
+			"description": "Unmute all tabs muted by this extension",
+			"global": true
+		}
 	}
 }

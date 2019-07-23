@@ -27,6 +27,13 @@ function manage(f)
 	chrome.tabs.query({}, tabs => tabs.forEach(f));
 }
 
+const commands = {
+	"mute-now": () => manage(mute),
+	"unmute-now": () => manage(unmute),
+	"...": cmd => console.log("Command", cmd, "fired"),
+};
+chrome.commands.onCommand.addListener(cmd => (commands[cmd] || commands["..."])(cmd));
+
 //Connect to a web socket on localhost
 //Adjust this if you put the server onto a different port
 let socket = null;
