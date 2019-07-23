@@ -28,6 +28,8 @@ function manage(f)
 }
 
 const commands = {
+	"mute-tab": () => chrome.tabs.query({active: true, currentWindow: true}, tabs =>
+		tabs[0] && chrome.tabs.update(tabs[0].id, {"muted": !tabs[0].mutedInfo.muted})),
 	"mute-now": () => manage(mute),
 	"unmute-now": () => manage(unmute),
 	"...": cmd => console.log("Command", cmd, "fired"),
