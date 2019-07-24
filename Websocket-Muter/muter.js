@@ -1,7 +1,7 @@
 //TODO: Have some hotkeys:
 //1) Local to Chrome: Toggle mute of this tab (even if not muted by this extn)
 //2) Local to Chrome: Flag this tab to not be muted for the next 30 secs
-//3) Global: Mute everything ==> manage(mute)
+//3) Global: Mute everything ==> alltabs(mute)
 //4) Global: Unmute everything, ditto
 console.log("Chrome:", chrome);
 function mute(tab)
@@ -22,16 +22,13 @@ function unmute(tab)
 		chrome.tabs.update(tab.id, {"muted": false});
 	}
 }
-function manage(f)
-{
-	chrome.tabs.query({}, tabs => tabs.forEach(f));
-}
+const alltabs = f => chrome.tabs.query({}, tabs => tabs.forEach(f));
+const curtab = f => chrome.tabs.query({active: true, currentWindow: true}, tabs => tabs[0] && f(tabs[0]));
 
 const commands = {
-	"mute-tab": () => chrome.tabs.query({active: true, currentWindow: true}, tabs =>
-		tabs[0] && chrome.tabs.update(tabs[0].id, {"muted": !tabs[0].mutedInfo.muted})),
-	"mute-now": () => manage(mute),
-	"unmute-now": () => manage(unmute),
+	"mute-tab": () => curtab(tab => chrome.tabs.update(tab.id, {"muted": !tab.mutedInfo.muted})),
+	"mute-now": () => alltabs(mute),
+	"unmute-now": () => alltabs(unmute),
 	"...": cmd => console.log("Command", cmd, "fired"),
 };
 chrome.commands.onCommand.addListener(cmd => (commands[cmd] || commands["..."])(cmd));
@@ -44,7 +41,7 @@ function setup_socket() {
 	socket.onopen = () => console.log("Socket connection established.");
 	socket.onmessage = ev => {
 		const msg = JSON.parse(ev.data);
-		if (msg && msg.type === "quiet") manage(msg.data ? mute : unmute);
+		if (msg && msg.type === "quiet") alltabs(msg.data ? mute : unmute);
 	};
 	socket.onclose = () => {socket = null; setTimeout(setup_socket, 5000);};
 }
