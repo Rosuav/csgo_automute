@@ -4,9 +4,12 @@
 //3) Global: Mute everything ==> alltabs(mute)
 //4) Global: Unmute everything, ditto
 console.log("Chrome:", chrome);
+
+//Map tab IDs to the time when they may again be automuted
+const nomute = {};
 function mute(tab)
 {
-	if (tab.audible && !tab.mutedInfo.muted)
+	if (tab.audible && !tab.mutedInfo.muted && +new Date >= (nomute[tab.id]||0))
 	{
 		console.log("Noisy tab:", tab);
 		chrome.tabs.update(tab.id, {"muted": true});
@@ -27,11 +30,13 @@ const curtab = f => chrome.tabs.query({active: true, currentWindow: true}, tabs 
 
 const commands = {
 	"mute-tab": () => curtab(tab => chrome.tabs.update(tab.id, {"muted": !tab.mutedInfo.muted})),
+	"keep-tab": () => curtab(tab => nomute[tab] = 30000 + +new Date), //30,000 ms or 30 seconds
 	"mute-now": () => alltabs(mute),
 	"unmute-now": () => alltabs(unmute),
 	"...": cmd => console.log("Command", cmd, "fired"),
 };
 chrome.commands.onCommand.addListener(cmd => (commands[cmd] || commands["..."])(cmd));
+chrome.commands.onCommand.addListener(cmd => console.log(cmd, "happened"));
 
 //Connect to a web socket on localhost
 //Adjust this if you put the server onto a different port
