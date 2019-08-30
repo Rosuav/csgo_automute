@@ -32,7 +32,7 @@ const commands = {
 	"mute-tab": () => curtab(tab => chrome.tabs.update(tab.id, {"muted": !tab.mutedInfo.muted})),
 	"keep-tab": () => curtab(tab => nomute[tab] = 30000 + +new Date), //30,000 ms or 30 seconds
 	"mute-now": () => alltabs(mute),
-	"unmute-now": () => alltabs(unmute),
+	"unmute-now": () => alltabs(unmute), //TODO: Maintain a separate record of what got mute-now'd
 	"...": cmd => console.log("Command", cmd, "fired"),
 };
 chrome.commands.onCommand.addListener(cmd => (commands[cmd] || commands["..."])(cmd));
