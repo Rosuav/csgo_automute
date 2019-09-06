@@ -30,7 +30,7 @@ const curtab = f => chrome.tabs.query({active: true, currentWindow: true}, tabs 
 
 const commands = {
 	"mute-tab": () => curtab(tab => chrome.tabs.update(tab.id, {"muted": !tab.mutedInfo.muted})),
-	"keep-tab": () => curtab(tab => nomute[tab] = 30000 + +new Date), //30,000 ms or 30 seconds
+	"keep-tab": () => curtab(tab => nomute[tab.id] = 30000 + +new Date), //30,000 ms or 30 seconds
 	"mute-now": () => alltabs(mute),
 	"unmute-now": () => alltabs(unmute), //TODO: Maintain a separate record of what got mute-now'd
 	"...": cmd => console.log("Command", cmd, "fired"),
