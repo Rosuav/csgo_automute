@@ -52,6 +52,11 @@ async def update_configs(req):
 	# from pprint import pprint; pprint(data)
 	phase = data.get("map", {}).get("phase")
 	new_quiet = phase in QUIET_PHASES
+	if "allplayers" in data and data.get("map", {}).get("mode") == "competitive":
+		# In competitive mode, if we're able to see every player's info,
+		# we must be spectating - possibly watching a replay - and so the
+		# normal muting rules don't apply.
+		new_quiet = False
 	global quiet
 	if new_quiet != quiet:
 		quiet = new_quiet
