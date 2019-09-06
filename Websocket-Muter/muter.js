@@ -25,12 +25,17 @@ function unmute(tab)
 		chrome.tabs.update(tab.id, {"muted": false});
 	}
 }
+function keep(tab)
+{
+	chrome.tabs.update(tab.id, {"muted": false}); //Force it to be unmuted
+	nomute[tab.id] = 30000 + +new Date; //30,000 ms or 30 seconds
+}
 const alltabs = f => chrome.tabs.query({}, tabs => tabs.forEach(f));
 const curtab = f => chrome.tabs.query({active: true, currentWindow: true}, tabs => tabs[0] && f(tabs[0]));
 
 const commands = {
 	"mute-tab": () => curtab(tab => chrome.tabs.update(tab.id, {"muted": !tab.mutedInfo.muted})),
-	"keep-tab": () => curtab(tab => nomute[tab.id] = 30000 + +new Date), //30,000 ms or 30 seconds
+	"keep-tab": () => curtab(keep),
 	"mute-now": () => alltabs(mute),
 	"unmute-now": () => alltabs(unmute), //TODO: Maintain a separate record of what got mute-now'd
 	"...": cmd => console.log("Command", cmd, "fired"),
