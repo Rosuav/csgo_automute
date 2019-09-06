@@ -1,8 +1,8 @@
 {
 	"manifest_version": 2,
 	"name": "WebSocket Tab Muter",
-	"description": "In response to a signal from a websocket, mutes/unmutes all tabs",
-	"version": "0.1",
+	"description": "In response to a signal from a websocket or hotkey, mutes/unmutes all tabs",
+	"version": "0.2",
 	"background": {
 		"scripts": ["muter.js"]
 	},
@@ -23,14 +23,14 @@
 			"suggested_key": {
 				"default": "Ctrl+Shift+5"
 			},
-			"description": "Mute all noisy tabs now",
+			"description": "Automute all noisy tabs now",
 			"global": true
 		},
 		"unmute-now": {
 			"suggested_key": {
 				"default": "Ctrl+Shift+6"
 			},
-			"description": "Unmute all tabs muted by this extension",
+			"description": "Unmute all automuted tabs",
 			"global": true
 		}
 	}
