@@ -7,7 +7,7 @@ console.log("Chrome:", chrome);
 
 //Map tab IDs to the time when they may again be automuted
 const nomute = {};
-function mute(tab)
+function automute(tab)
 {
 	if (tab.audible && !tab.mutedInfo.muted && +new Date >= (nomute[tab.id]||0))
 	{
@@ -15,7 +15,7 @@ function mute(tab)
 		chrome.tabs.update(tab.id, {"muted": true});
 	}
 }
-function unmute(tab)
+function autounmute(tab)
 {
 	if (tab.mutedInfo.muted &&
 		tab.mutedInfo.reason === "extension" &&
@@ -24,6 +24,10 @@ function unmute(tab)
 		console.log("Muted tab:", tab);
 		chrome.tabs.update(tab.id, {"muted": false});
 	}
+}
+function togglemute(tab)
+{
+	chrome.tabs.update(tab.id, {"muted": !tab.mutedInfo.muted});
 }
 function keep(tab)
 {
@@ -34,10 +38,10 @@ const alltabs = f => chrome.tabs.query({}, tabs => tabs.forEach(f));
 const curtab = f => chrome.tabs.query({active: true, currentWindow: true}, tabs => tabs[0] && f(tabs[0]));
 
 const commands = {
-	"mute-tab": () => curtab(tab => chrome.tabs.update(tab.id, {"muted": !tab.mutedInfo.muted})),
+	"mute-tab": () => curtab(togglemute),
 	"keep-tab": () => curtab(keep),
-	"mute-now": () => alltabs(mute),
-	"unmute-now": () => alltabs(unmute), //TODO: Maintain a separate record of what got mute-now'd
+	"mute-now": () => alltabs(automute),
+	"unmute-now": () => alltabs(autounmute), //TODO: Maintain a separate record of what got mute-now'd
 	"...": cmd => console.log("Command", cmd, "fired"),
 };
 chrome.commands.onCommand.addListener(cmd => (commands[cmd] || commands["..."])(cmd));
