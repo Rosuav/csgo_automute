@@ -50,7 +50,7 @@ const commands = {
 	"mute-tab": () => curtab(togglemute),
 	"keep-tab": () => curtab(keep),
 	"mute-now": () => alltabs(automute),
-	"unmute-now": () => alltabs(autounmute), //TODO: Maintain a separate record of what got mute-now'd
+	"unmute-now": () => alltabs(autounmute),
 	"...": cmd => console.log("Command", cmd, "fired"),
 };
 chrome.commands.onCommand.addListener(cmd => (commands[cmd] || commands["..."])(cmd));
