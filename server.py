@@ -82,6 +82,8 @@ TODO: Notetaker.
   - See above re round numbers
   - If warmup, report round zero
   - If spectating, say who's being spec'd, just in case
+    - Test this - can we get the name of the person or just the id? Can we look up the
+      id and get a name? (I think it's a Steam ID.) Can we at least get the observer_slot?
 * It's not possible while playing to get the current round timers, I believe. It IS,
   however, possible to notice the round number change (and freeze time end), and record
   the time. For the purposes of note-taking, a few seconds here or there doesn't matter.
