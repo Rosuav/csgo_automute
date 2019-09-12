@@ -44,12 +44,62 @@ async def websocket(req):
 	await ws.close()
 	return ws
 
+def lookup(data, arg):
+	for piece in arg.split(":"):
+		data = data.get(piece)
+		if data is None: return "##"
+	return data
+
+import time
+last_stats_time = None
+def show_stats(data, fmt, *args):
+	global last_stats_time
+	t = time.time()
+	if last_stats_time is None: tm = 0.0
+	else: tm = t - last_stats_time
+	last_stats_time = t
+	print("%.1f" % tm, fmt % tuple(lookup(data, arg) for arg in args))
+
+''' If phase is 'over' or 'freezetime', most likely any comments relate to the PREVIOUS round.
+But the round number starts from zero, so in human terms, it's actually necessary to *add* one
+to the round number whenever the phase is 'live'.
+
+R0 live (0::0) - 2+0 for 0 - 4 points - {'phase': 'live'}
+R0 live (0::0) - 2+0 for 0 - 4 points - {'phase': 'live'}
+R0 live (0::0) - 2+0 for 0 - 4 points - {'phase': 'live'}
+R1 live (0::0) - 3+0 for 0 - 6 points - {'phase': 'over', 'win_team': 'CT'}
+R1 live (1::0) - 3+0 for 0 - 6 points - {'phase': 'over', 'win_team': 'CT'}
+R1 live (1::0) - 3+0 for 0 - 6 points - {'phase': 'over', 'win_team': 'CT'}
+R1 live (1::0) - 3+0 for 0 - 6 points - {'phase': 'freezetime'}
+R1 live (1::0) - 3+0 for 0 - 6 points - {'phase': 'freezetime'}
+
+TODO: Notetaker.
+* Unrelated to CS:GO, a program that, when run, listens to the microphone and transcribes.
+  - If given args, it can incorporate those into the file name.
+  - Must be able to be run multiple times with the same args and store multiple
+  - Must be able to create multiple "blocks" of notes, independently ordered
+* Triggered within the CS:GO ecosystem, a way to take notes on the current round.
+  - See above re round numbers
+  - If warmup, report round zero
+  - If spectating, say who's being spec'd, just in case
+* It's not possible while playing to get the current round timers, I believe. It IS,
+  however, possible to notice the round number change (and freeze time end), and record
+  the time. For the purposes of note-taking, a few seconds here or there doesn't matter.
+* After notes have been taken, the text form should be shown in some visible way. This
+  is probably best just done by writing to a file, and then tailing that file - would
+  play nicely with CroppedTerm for the stream.
+'''
+
 @route.post("/gsi")
 async def update_configs(req):
 	data = await req.json()
 	if "previously" in data: del data["previously"] # These two are always uninteresting.
 	if "added" in data: del data["added"]
 	# from pprint import pprint; pprint(data)
+	if 0: show_stats(data, "R%s (%s::%s) - %s/%s",
+		"map:round", "map:team_ct:score", "map:team_t:score",
+		"map:phase", "round:phase",
+	)
 	phase = data.get("map", {}).get("phase")
 	new_quiet = phase in QUIET_PHASES
 	if "allplayers" in data and data.get("map", {}).get("mode") == "competitive":
