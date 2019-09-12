@@ -88,6 +88,9 @@ TODO: Notetaker.
 * After notes have been taken, the text form should be shown in some visible way. This
   is probably best just done by writing to a file, and then tailing that file - would
   play nicely with CroppedTerm for the stream.
+
+Would be REALLY cool if it could also record any typed text for those few seconds. During
+freeze time, I would have to be aware of hitting G but most other keys would be safe.
 '''
 
 @route.post("/gsi")
