@@ -93,6 +93,8 @@ TODO: Notetaker.
 
 Would be REALLY cool if it could also record any typed text for those few seconds. During
 freeze time, I would have to be aware of hitting G but most other keys would be safe.
+
+Voice trigger???? "Bacon!"
 '''
 
 @route.post("/gsi")
