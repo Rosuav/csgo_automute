@@ -105,8 +105,10 @@ async def round_status(req):
 	# How long since the last sighting of freeze time? (Round phase, not map phase)
 	# Since the last time status was requested, has there been a new Warmup? (Map phase)
 	global is_new_match
+	resp = is_new_match * "--new-block " + current_round
+	if round_start_time: resp += "(%.1fs)" % (time.time() - round_start_time)
 	is_new_match = False
-	return web.Response(text="")
+	return web.Response(text=resp)
 
 @route.post("/gsi")
 async def update_configs(req):
@@ -114,6 +116,7 @@ async def update_configs(req):
 	global current_round
 	phase = lookup(data, "map:phase")
 	if phase == "warmup":
+		# TODO: Detect only a NEW warmup
 		print("It's a new warmup, so it's a new match")
 		global is_new_match; is_new_match = True
 		round = 0
@@ -131,7 +134,11 @@ async def update_configs(req):
 		# time into the current round.
 		global round_start_time; round_start_time = time.time()
 	current_round = "R%d (%s::%s)" % (round, lookup(data, "map:team_ct:score", "--"), lookup(data, "map:team_t:score", "--"))
-	print(current_round, time.time() - round_start_time if round_start_time else "")
+	if lookup(data, "player:steamid", "X") != lookup(data, "provider:steamid", "Y"):
+		# If you're not observing yourself, record who you ARE observing.
+		current_round += " spec-%s-%s" % (lookup(data, "player:observer_slot", "?"), lookup(data, "player:name", "?"))
+	print(current_round, "%.1fs" % (time.time() - round_start_time) if round_start_time else "",
+		lookup(data, "player:steamid", "##"), lookup(data, "player:observer_slot", "(-)"))
 	if "previously" in data: del data["previously"] # These two are always uninteresting.
 	if "added" in data: del data["added"]
 	# from pprint import pprint; pprint(data)
