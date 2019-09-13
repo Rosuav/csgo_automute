@@ -44,10 +44,10 @@ async def websocket(req):
 	await ws.close()
 	return ws
 
-def lookup(data, arg):
+def lookup(data, arg, absent=None):
 	for piece in arg.split(":"):
 		data = data.get(piece)
-		if data is None: return "##"
+		if data is None: return absent
 	return data
 
 import time
@@ -58,7 +58,7 @@ def show_stats(data, fmt, *args):
 	if last_stats_time is None: tm = 0.0
 	else: tm = t - last_stats_time
 	last_stats_time = t
-	print("%.1f" % tm, fmt % tuple(lookup(data, arg) for arg in args))
+	print("%.1f" % tm, fmt % tuple(lookup(data, arg, "##") for arg in args))
 
 ''' If phase is 'over' or 'freezetime', most likely any comments relate to the PREVIOUS round.
 But the round number starts from zero, so in human terms, it's actually necessary to *add* one
@@ -104,9 +104,9 @@ async def update_configs(req):
 		"map:round", "map:team_ct:score", "map:team_t:score",
 		"map:phase", "round:phase",
 	)
-	phase = data.get("map", {}).get("phase")
+	phase = lookup(data, "map:phase")
 	new_quiet = phase in QUIET_PHASES
-	if "allplayers" in data and data.get("map", {}).get("mode") == "competitive":
+	if "allplayers" in data and lookup(data, "map:mode") == "competitive":
 		# In competitive mode, if we're able to see every player's info,
 		# we must be spectating - possibly watching a replay - and so the
 		# normal muting rules don't apply.
