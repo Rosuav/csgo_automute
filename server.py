@@ -98,6 +98,7 @@ Voice trigger???? "Bacon!"
 current_round = "Round Unknown"
 is_new_match = True
 round_start_time = None
+in_freeze_time = False
 @route.get("/status")
 async def round_status(req):
 	# Key pieces of info:
@@ -106,7 +107,7 @@ async def round_status(req):
 	# Since the last time status was requested, has there been a new Warmup? (Map phase)
 	global is_new_match
 	resp = is_new_match * "--new-block " + current_round
-	if round_start_time: resp += "(%.1fs)" % (time.time() - round_start_time)
+	if round_start_time: resp += " (%.1fs)" % (time.time() - round_start_time)
 	is_new_match = False
 	return web.Response(text=resp)
 
@@ -115,6 +116,7 @@ async def update_configs(req):
 	data = await req.json()
 	global current_round
 	phase = lookup(data, "map:phase")
+	rdphase = lookup(data, "round:phase")
 	if phase == "warmup":
 		# TODO: Detect only a NEW warmup
 		print("It's a new warmup, so it's a new match")
@@ -127,11 +129,14 @@ async def update_configs(req):
 		# "round zero"). However, if notes are taken during game over, round over,
 		# or freeze time, they probably apply to the PREVIOUS round, so we subtract
 		# one again. Or, yaknow, just don't add the one in the first place.
-		if lookup(data, "round:phase") == "live": round += 1
-	if lookup(data, "previously:round:phase") == "freezetime":
-		# We WERE in freeze time, but now we're not. (Can I depend on the 'previously'
-		# block, or should I record it myself?) Jot down the time so we can measure
-		# time into the current round.
+		if rdphase == "live": round += 1
+	if rdphase == "freezetime":
+		global in_freeze_time; in_freeze_time = True
+	if in_freeze_time and rdphase != "freezetime":
+		# We WERE in freeze time, but now we're not. Jot down the time so we can
+		# measure time into the current round. Note that previously:round:phase
+		# is NOT reliable; sometimes, previously:round is True instead of actually
+		# having useful information in it. Thanks so much, CS:GO.
 		global round_start_time; round_start_time = time.time()
 	current_round = "R%d (%s::%s)" % (round, lookup(data, "map:team_ct:score", "--"), lookup(data, "map:team_t:score", "--"))
 	if lookup(data, "player:steamid", "X") != lookup(data, "provider:steamid", "Y"):
