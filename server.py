@@ -142,8 +142,7 @@ async def update_configs(req):
 	if lookup(data, "player:steamid", "X") != lookup(data, "provider:steamid", "Y"):
 		# If you're not observing yourself, record who you ARE observing.
 		current_round += " spec-%s-%s" % (lookup(data, "player:observer_slot", "?"), lookup(data, "player:name", "?"))
-	print(current_round, "%.1fs" % (time.time() - round_start_time) if round_start_time else "",
-		lookup(data, "player:steamid", "##"), lookup(data, "player:observer_slot", "(-)"))
+	# print(current_round, "%.1fs" % (time.time() - round_start_time) if round_start_time else "")
 	if "previously" in data: del data["previously"] # These two are always uninteresting.
 	if "added" in data: del data["added"]
 	# from pprint import pprint; pprint(data)
