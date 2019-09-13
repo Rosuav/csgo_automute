@@ -74,10 +74,7 @@ R1 live (1::0) - 3+0 for 0 - 6 points - {'phase': 'freezetime'}
 R1 live (1::0) - 3+0 for 0 - 6 points - {'phase': 'freezetime'}
 
 TODO: Notetaker.
-* Unrelated to CS:GO, a program that, when run, listens to the microphone and transcribes.
-  - If given args, it can incorporate those into the file name.
-  - Must be able to be run multiple times with the same args and store multiple
-  - Must be able to create multiple "blocks" of notes, independently ordered
+* Make use of ~/shed/notes.py
 * Triggered within the CS:GO ecosystem, a way to take notes on the current round.
   - See above re round numbers
   - If warmup, report round zero
@@ -103,7 +100,7 @@ async def update_configs(req):
 	if "previously" in data: del data["previously"] # These two are always uninteresting.
 	if "added" in data: del data["added"]
 	# from pprint import pprint; pprint(data)
-	if 0: show_stats(data, "R%s (%s::%s) - %s/%s",
+	if 1: show_stats(data, "R%s (%s::%s) - %s/%s",
 		"map:round", "map:team_ct:score", "map:team_t:score",
 		"map:phase", "round:phase",
 	)
