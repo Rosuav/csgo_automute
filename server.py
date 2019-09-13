@@ -93,6 +93,9 @@ Would be REALLY cool if it could also record any typed text for those few second
 freeze time, I would have to be aware of hitting G but most other keys would be safe.
 
 Voice trigger???? "Bacon!"
+
+Now all I need to do is run this:
+$ ~/shed/notes.py `curl http://localhost:27013/status`
 '''
 
 current_round = "Round Unknown"
