@@ -2,6 +2,7 @@ import os
 import re
 import sys
 import json
+import time
 import socket
 import asyncio
 import hashlib
@@ -94,17 +95,46 @@ freeze time, I would have to be aware of hitting G but most other keys would be 
 Voice trigger???? "Bacon!"
 '''
 
+current_round = "Round Unknown"
+is_new_match = True
+round_start_time = None
+@route.get("/status")
+async def round_status(req):
+	# Key pieces of info:
+	# Are we in warmup? If so, R0. If not, round number per above.
+	# How long since the last sighting of freeze time? (Round phase, not map phase)
+	# Since the last time status was requested, has there been a new Warmup? (Map phase)
+	global is_new_match
+	is_new_match = False
+	return web.Response(text="")
+
 @route.post("/gsi")
 async def update_configs(req):
 	data = await req.json()
+	global current_round
+	phase = lookup(data, "map:phase")
+	if phase == "warmup":
+		print("It's a new warmup, so it's a new match")
+		global is_new_match; is_new_match = True
+		round = 0
+	else:
+		round = int(lookup(data, "map:round", "0"))
+		# Rounds are numbered from zero, so normally we have to add one to get to
+		# the round number that humans want to use (especially since we call warmup
+		# "round zero"). However, if notes are taken during game over, round over,
+		# or freeze time, they probably apply to the PREVIOUS round, so we subtract
+		# one again. Or, yaknow, just don't add the one in the first place.
+		if lookup(data, "round:phase") == "live": round += 1
+	if lookup(data, "previously:round:phase") == "freezetime":
+		# We WERE in freeze time, but now we're not. (Can I depend on the 'previously'
+		# block, or should I record it myself?) Jot down the time so we can measure
+		# time into the current round.
+		global round_start_time; round_start_time = time.time()
+	current_round = "R%d (%s::%s)" % (round, lookup(data, "map:team_ct:score", "--"), lookup(data, "map:team_t:score", "--"))
+	print(current_round, time.time() - round_start_time if round_start_time else "")
 	if "previously" in data: del data["previously"] # These two are always uninteresting.
 	if "added" in data: del data["added"]
 	# from pprint import pprint; pprint(data)
-	if 1: show_stats(data, "R%s (%s::%s) - %s/%s",
-		"map:round", "map:team_ct:score", "map:team_t:score",
-		"map:phase", "round:phase",
-	)
-	phase = lookup(data, "map:phase")
 	new_quiet = phase in QUIET_PHASES
 	if "allplayers" in data and lookup(data, "map:mode") == "competitive":
 		# In competitive mode, if we're able to see every player's info,
