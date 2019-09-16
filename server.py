@@ -110,7 +110,7 @@ async def round_status(req):
 	# Since the last time status was requested, has there been a new Warmup? (Map phase)
 	global is_new_match
 	resp = is_new_match * "--new-block " + current_round
-	if round_start_time: resp += " (%.1fs)" % (time.time() - round_start_time)
+	if round_start_time: resp += " (%.1fs)" % (time.time() - round_start_time) # TODO: This isn't working - why?
 	is_new_match = False
 	return web.Response(text=resp)
 
