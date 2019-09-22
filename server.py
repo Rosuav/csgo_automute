@@ -141,6 +141,7 @@ async def update_configs(req):
 		# is NOT reliable; sometimes, previously:round is True instead of actually
 		# having useful information in it. Thanks so much, CS:GO.
 		global round_start_time; round_start_time = time.time()
+		in_freeze_time = False
 	current_round = "R%d (%s::%s)" % (round, lookup(data, "map:team_ct:score", "--"), lookup(data, "map:team_t:score", "--"))
 	if lookup(data, "player:steamid", "X") != lookup(data, "provider:steamid", "Y"):
 		# If you're not observing yourself, record who you ARE observing.
