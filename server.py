@@ -98,7 +98,8 @@ Now all I need to do is run this:
 $ ~/shed/notes.py `curl http://localhost:27013/status`
 '''
 
-current_round = "Round Unknown"
+class State:
+	round = "Round Unknown"
 is_new_match = True
 round_start_time = None
 in_freeze_time = False
@@ -109,7 +110,7 @@ async def round_status(req):
 	# How long since the last sighting of freeze time? (Round phase, not map phase)
 	# Since the last time status was requested, has there been a new Warmup? (Map phase)
 	global is_new_match
-	resp = is_new_match * "--new-block " + current_round
+	resp = is_new_match * "--new-block " + State.round
 	if round_start_time: resp += " (%.1fs)" % (time.time() - round_start_time) # TODO: This isn't working - why?
 	is_new_match = False
 	return web.Response(text=resp)
@@ -117,7 +118,6 @@ async def round_status(req):
 @route.post("/gsi")
 async def update_configs(req):
 	data = await req.json()
-	global current_round
 	phase = lookup(data, "map:phase")
 	rdphase = lookup(data, "round:phase")
 	if phase == "warmup":
@@ -142,11 +142,11 @@ async def update_configs(req):
 		# having useful information in it. Thanks so much, CS:GO.
 		global round_start_time; round_start_time = time.time()
 		in_freeze_time = False
-	current_round = "R%d (%s::%s)" % (round, lookup(data, "map:team_ct:score", "--"), lookup(data, "map:team_t:score", "--"))
+	State.round = "R%d (%s::%s)" % (round, lookup(data, "map:team_ct:score", "--"), lookup(data, "map:team_t:score", "--"))
 	if lookup(data, "player:steamid", "X") != lookup(data, "provider:steamid", "Y"):
 		# If you're not observing yourself, record who you ARE observing.
-		current_round += " spec-%s-%s" % (lookup(data, "player:observer_slot", "?"), lookup(data, "player:name", "?"))
-	# print(current_round, "%.1fs" % (time.time() - round_start_time) if round_start_time else "")
+		State.round += " spec-%s-%s" % (lookup(data, "player:observer_slot", "?"), lookup(data, "player:name", "?"))
+	# print(State.round, "%.1fs" % (time.time() - round_start_time) if round_start_time else "")
 	if "previously" in data: del data["previously"] # These two are always uninteresting.
 	if "added" in data: del data["added"]
 	# from pprint import pprint; pprint(data)
