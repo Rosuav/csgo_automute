@@ -103,6 +103,7 @@ class State:
 	is_new_match = True # Set when new match started, reset only when round status requested
 	round_start = None # Time when the most recent round started (defined by the end of freeze time)
 	frozen = False # Are we in freeze time?
+	warmup = False # Are we in warmup? Technically not a three-way state with frozen, though they are unlikely ever to both be True.
 @route.get("/status")
 async def round_status(req):
 	# Key pieces of info:
@@ -120,11 +121,11 @@ async def update_configs(req):
 	phase = lookup(data, "map:phase")
 	rdphase = lookup(data, "round:phase")
 	if phase == "warmup":
-		# TODO: Detect only a NEW warmup
-		print("It's a new warmup, so it's a new match")
-		State.is_new_match = True
+		if not State.warmup:
+			State.is_new_match = State.warmup = True
 		round = 0
 	else:
+		State.warmup = False
 		round = int(lookup(data, "map:round", "0"))
 		# Rounds are numbered from zero, so normally we have to add one to get to
 		# the round number that humans want to use (especially since we call warmup
