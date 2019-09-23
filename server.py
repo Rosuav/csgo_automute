@@ -99,20 +99,19 @@ $ ~/shed/notes.py `curl http://localhost:27013/status`
 '''
 
 class State:
-	round = "Round Unknown"
-is_new_match = True
-round_start_time = None
-in_freeze_time = False
+	round = "Round Unknown" # Current round number
+	is_new_match = True # Set when new match started, reset only when round status requested
+	round_start = None # Time when the most recent round started (defined by the end of freeze time)
+	frozen = False # Are we in freeze time?
 @route.get("/status")
 async def round_status(req):
 	# Key pieces of info:
 	# Are we in warmup? If so, R0. If not, round number per above.
 	# How long since the last sighting of freeze time? (Round phase, not map phase)
 	# Since the last time status was requested, has there been a new Warmup? (Map phase)
-	global is_new_match
-	resp = is_new_match * "--new-block " + State.round
-	if round_start_time: resp += " (%.1fs)" % (time.time() - round_start_time) # TODO: This isn't working - why?
-	is_new_match = False
+	resp = State.is_new_match * "--new-block " + State.round
+	if State.round_start: resp += " (%.1fs)" % (time.time() - State.round_start)
+	State.is_new_match = False
 	return web.Response(text=resp)
 
 @route.post("/gsi")
@@ -123,7 +122,7 @@ async def update_configs(req):
 	if phase == "warmup":
 		# TODO: Detect only a NEW warmup
 		print("It's a new warmup, so it's a new match")
-		global is_new_match; is_new_match = True
+		State.is_new_match = True
 		round = 0
 	else:
 		round = int(lookup(data, "map:round", "0"))
@@ -134,19 +133,19 @@ async def update_configs(req):
 		# one again. Or, yaknow, just don't add the one in the first place.
 		if rdphase == "live": round += 1
 	if rdphase == "freezetime":
-		global in_freeze_time; in_freeze_time = True
-	if in_freeze_time and rdphase != "freezetime":
+		State.frozen = True
+	if State.frozen and rdphase != "freezetime":
 		# We WERE in freeze time, but now we're not. Jot down the time so we can
 		# measure time into the current round. Note that previously:round:phase
 		# is NOT reliable; sometimes, previously:round is True instead of actually
 		# having useful information in it. Thanks so much, CS:GO.
-		global round_start_time; round_start_time = time.time()
-		in_freeze_time = False
+		State.round_start = time.time()
+		State.frozen = False
 	State.round = "R%d (%s::%s)" % (round, lookup(data, "map:team_ct:score", "--"), lookup(data, "map:team_t:score", "--"))
 	if lookup(data, "player:steamid", "X") != lookup(data, "provider:steamid", "Y"):
 		# If you're not observing yourself, record who you ARE observing.
 		State.round += " spec-%s-%s" % (lookup(data, "player:observer_slot", "?"), lookup(data, "player:name", "?"))
-	# print(State.round, "%.1fs" % (time.time() - round_start_time) if round_start_time else "")
+	# print(State.round, "%.1fs" % (time.time() - State.round_start) if State.round_start else "")
 	if "previously" in data: del data["previously"] # These two are always uninteresting.
 	if "added" in data: del data["added"]
 	# from pprint import pprint; pprint(data)
