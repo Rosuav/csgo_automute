@@ -104,12 +104,14 @@ class State:
 	round_start = None # Time when the most recent round started (defined by the end of freeze time)
 	frozen = False # Are we in freeze time?
 	warmup = False # Are we in warmup? Technically not a three-way state with frozen, though they are unlikely ever to both be True.
+	playing = False # Are we even playing the game? What IS this?
 @route.get("/status")
 async def round_status(req):
 	# Key pieces of info:
 	# Are we in warmup? If so, R0. If not, round number per above.
 	# How long since the last sighting of freeze time? (Round phase, not map phase)
 	# Since the last time status was requested, has there been a new Warmup? (Map phase)
+	if not State.playing: return web.Response(text="n/a")
 	resp = State.is_new_match * "--new-block " + State.round
 	if State.round_start: resp += " (%.1fs)" % (time.time() - State.round_start)
 	State.is_new_match = False
@@ -120,6 +122,7 @@ async def update_configs(req):
 	data = await req.json()
 	phase = lookup(data, "map:phase")
 	rdphase = lookup(data, "round:phase")
+	State.playing = phase is not None
 	if phase == "warmup":
 		if not State.warmup:
 			State.is_new_match = State.warmup = True
