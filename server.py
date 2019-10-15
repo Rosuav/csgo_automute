@@ -96,6 +96,20 @@ Voice trigger???? "Bacon!"
 
 Now all I need to do is run this:
 $ ~/shed/notes.py `curl http://localhost:27013/status`
+
+Additional crazy ideas:
+  - Identify a downloaded match somehow
+    - The first time freeze-time ends, gather the Steam IDs of all players
+    - It's highly unlikely that I'll ever be in two matches with the exact same ten players in the exact same order.
+  - What ARE all those numbers in the file name?
+  - Monitor the directory to see when one's downloaded
+  - Can I signal CS:GO (or signal Steam to signal CS:GO) to open that match at that round?
+    - First, find the tick number that the round started at (by parsing the file)
+    - Console: playdemo replays/match730_003373022181167464575_1769684219_172.dem; demo_gototick 149470
+    - steam://rungame/730/76561202255233023/+csgo_download_match%20CSGO-PLrc7-7rHPY-HRt5B-5xLqy-jVMQC
+    - Can't use that with playdemo though, and adding demo_gototick doesn't help else.
+    - CAN use "steam://rungame/730/76561202255233023/+exec%20startdemo" but only if CS:GO isn't running.
+    - Could bind a key to "exec startdemo" maybe??
 '''
 
 class State:
