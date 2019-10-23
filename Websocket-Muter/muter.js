@@ -46,7 +46,13 @@ function keep(tab)
 const alltabs = f => chrome.tabs.query({}, tabs => tabs.forEach(f));
 const curtab = f => chrome.tabs.query({active: true, currentWindow: true}, tabs => tabs[0] && f(tabs[0]));
 
+function close_not_current(tabs)
+{
+	chrome.tabs.remove(tabs.filter(t => !t.active).map(t => t.id));
+}
+
 const commands = {
+	"close-other-tabs": () => chrome.tabs.query({currentWindow: true}, close_not_current),
 	"mute-tab": () => curtab(togglemute),
 	"keep-tab": () => curtab(keep),
 	"mute-now": () => alltabs(automute),
