@@ -1,5 +1,8 @@
 import choc, {set_content} from "https://rosuav.github.io/shed/chocfactory.js";
-const {P} = choc;
+const {P, AUDIO} = choc;
+
+//set_content("p", AUDIO({controls: true, src: "/recordings/6/02 - R1 (0::0) spec-2-Gunner.flac"}));
+//fetch("/recordings/6/metadata.json").then(r => r.json()).then(r => console.log(r))
 
 const protocol = window.location.protocol == "https:" ? "wss://" : "ws://";
 let socket;
