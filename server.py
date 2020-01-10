@@ -128,24 +128,40 @@ TODO: Automatically play back the notes files as I reach the corresponding point
 '''
 
 class State:
-	round = "Round Unknown" # Current round number
+	round_desc = "Round Unknown" # Current round number, spectating status, etc
+	round = -1; ct_score = 0; t_score = 0 # Also found in round_desc
+	spec = None; spec_slot = None # Who you're spectating, if any
 	is_new_match = True # Set when new match started, reset only when round status requested
 	round_start = None # Time when the most recent round started (defined by the end of freeze time)
 	frozen = False # Are we in freeze time?
 	warmup = False # Are we in warmup? Technically not a three-way state with frozen, though they are unlikely ever to both be True.
 	playing = False # Are we even playing the game? What IS this?
 	round_timer = 0.0 # How long is a round (counting just after freeze time ends)?
-@route.get("/status")
+@route.get("/status") # deprecated
 async def round_status(req):
 	# Key pieces of info:
 	# Are we in warmup? If so, R0. If not, round number per above.
 	# How long since the last sighting of freeze time? (Round phase, not map phase)
 	# Since the last time status was requested, has there been a new Warmup? (Map phase)
 	if not State.playing: return web.Response(text="n/a")
-	resp = State.is_new_match * "--new-block " + State.round
+	resp = State.is_new_match * "--new-block " + State.round_desc
 	if State.round_start: resp += " (%.1fs)" % (time.time() - State.round_start)
 	State.is_new_match = False
 	return web.Response(text=resp)
+
+@route.get("/status.json")
+async def round_status_json(req):
+	resp = {
+		"playing": State.playing,
+		"new_match": State.is_new_match,
+		"desc": State.round_desc,
+		"round": State.round,
+		"spec": [State.spec, State.spec_slot],
+		"score": [State.ct_score, State.t_score],
+		"time": time.time() - State.round_start if State.round_start else None
+	}
+	State.is_new_match = False
+	return web.json_response(resp)
 
 @route.post("/gsi")
 async def update_configs(req):
@@ -186,11 +202,18 @@ async def update_configs(req):
 			# assume that that's the round time.
 			State.round_timer = max(State.round_timer, float(p["phase_ends_in"]))
 			print("Freeze time ends - round time is", p["phase_ends_in"])
-	State.round = "R%d (%s::%s)" % (round, lookup(data, "map:team_ct:score", "--"), lookup(data, "map:team_t:score", "--"))
+	State.round = round
+	State.ct_score = lookup(data, "map:team_ct:score", "--")
+	State.t_score = lookup(data, "map:team_t:score", "--")
+	State.round_desc = "R%d (%s::%s)" % (round, State.ct_score, State.t_score)
 	if lookup(data, "player:steamid", "X") != lookup(data, "provider:steamid", "Y"):
 		# If you're not observing yourself, record who you ARE observing.
-		State.round += " spec-%s-%s" % (lookup(data, "player:observer_slot", "?"), lookup(data, "player:name", "?"))
-	# print(State.round, "%.1fs" % (time.time() - State.round_start) if State.round_start else "")
+		State.spec = lookup(data, "player:name", "?")
+		State.spec_slot = lookup(data, "player:observer_slot", "?")
+		State.round_desc += " spec-%s-%s" % (State.spec_slot, State.spec)
+	else:
+		State.spec = State.spec_slot = None
+	# print(State.round_desc, "%.1fs" % (time.time() - State.round_start) if State.round_start else "")
 	if "previously" in data: del data["previously"] # These two are always uninteresting.
 	if "added" in data: del data["added"]
 	# from pprint import pprint; pprint(data)
