@@ -112,6 +112,20 @@ Additional crazy ideas:
     - Could bind a key to "exec startdemo" maybe??
 '''
 
+'''
+TODO: Automatically play back the notes files as I reach the corresponding point.
+* Recognize the match somehow? If not, assume the user will pick the right demo.
+* Possibly best to open up a web page to do the playing
+* Show all notes as they were taken, with the transcripts given by Sphinx and Google
+* Allow manual playing and then typing of transcriptions
+* Highlight the next message. Autoskip if we're in a round beyond it.
+* When we get to +/- 1 second of when the notes were taken, flash the notes section while playing the audio.
+* Move to the next message after playing.
+* Automatically open this up for a block when GSI says to create one??
+* As soon as we see the round timer, flip all clocks from "count up from freeze" to "count down from round time"
+  - This should be done client-side. Continue to store time-since-freeze-end, but display it inverted.
+'''
+
 class State:
 	round = "Round Unknown" # Current round number
 	is_new_match = True # Set when new match started, reset only when round status requested
@@ -119,6 +133,7 @@ class State:
 	frozen = False # Are we in freeze time?
 	warmup = False # Are we in warmup? Technically not a three-way state with frozen, though they are unlikely ever to both be True.
 	playing = False # Are we even playing the game? What IS this?
+	round_timer = 0.0 # How long is a round (counting just after freeze time ends)?
 @route.get("/status")
 async def round_status(req):
 	# Key pieces of info:
@@ -140,6 +155,7 @@ async def update_configs(req):
 	if phase == "warmup":
 		if not State.warmup:
 			State.is_new_match = State.warmup = True
+			State.round_timer = 0.0
 		round = 0
 	else:
 		State.warmup = False
@@ -159,6 +175,16 @@ async def update_configs(req):
 		# having useful information in it. Thanks so much, CS:GO.
 		State.round_start = time.time()
 		State.frozen = False
+		p = data.get("phase_countdowns")
+		if p and p["phase"] == "live":
+			# When spectating, we get the phase time, which tells us the
+			# round timer. But we don't always get it instantly, and it's
+			# entirely possible we'll jump around some. However we know
+			# for sure that the time left will never EXCEED the round time,
+			# so we take the longest timer ever seen (this block) and
+			# assume that that's the round time.
+			State.round_timer = max(State.round_timer, float(p["phase_ends_in"]))
+			print("Freeze time ends - round time is", p["phase_ends_in"])
 	State.round = "R%d (%s::%s)" % (round, lookup(data, "map:team_ct:score", "--"), lookup(data, "map:team_t:score", "--"))
 	if lookup(data, "player:steamid", "X") != lookup(data, "provider:steamid", "Y"):
 		# If you're not observing yourself, record who you ARE observing.
