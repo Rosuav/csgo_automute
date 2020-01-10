@@ -30,6 +30,7 @@ async def home(req):
 @route.get("/ws")
 async def websocket(req):
 	ws = web.WebSocketResponse()
+	ws.notes_block = None
 	await ws.prepare(req)
 	clients.append(ws)
 
@@ -40,7 +41,10 @@ async def websocket(req):
 		try: msg = json.loads(msg.data)
 		except ValueError: continue
 		print("MESSAGE", msg)
-		# Currently no incoming messages have meaning
+		if msg.get("type") == "init":
+			try: ws.notes_block = int(msg["block"])
+			except (ValueError, KeyError): pass
+			await ws.send_json({"type": "inited"})
 
 	clients.remove(ws)
 	await ws.close()
