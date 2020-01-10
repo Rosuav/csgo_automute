@@ -12,6 +12,7 @@ QUIET_PHASES = {"warmup", "live", "gameover", "intermission"} # Could be a froze
 
 app = web.Application()
 route = web.RouteTableDef()
+route.static("/static", "static")
 runner = web.AppRunner(app)
 clients = []
 quiet = False
