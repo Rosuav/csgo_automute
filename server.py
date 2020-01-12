@@ -169,6 +169,14 @@ async def round_status_json(req):
 	State.is_new_match = False
 	return web.json_response(resp)
 
+@route.post("/metadata/<block>")
+async def update_metadata(block):
+	# TODO: Accept the JSON payload and notify all connected clients that
+	# this block now has new metadata available. The payload should be
+	# identical to what would be given by GET /recordings/<block>/metadata.json
+	# but will be sent over the websocket for instant update.
+	return web.Response(text="OK")
+
 @route.post("/gsi")
 async def update_configs(req):
 	data = await req.json()
