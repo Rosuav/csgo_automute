@@ -163,8 +163,9 @@ async def round_status_json(req):
 		"round": State.round,
 		"spec": [State.spec, State.spec_slot],
 		"score": [State.ct_score, State.t_score],
-		"time": time.time() - State.round_start if State.round_start else None
+		"time": (time.time() - State.round_start) if State.round_start else None
 	}
+	if State.round_start: resp["desc"] += " (%.1fs)" % (time.time() - State.round_start)
 	State.is_new_match = False
 	return web.json_response(resp)
 
