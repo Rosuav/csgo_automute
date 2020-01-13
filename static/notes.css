@@ -9,3 +9,9 @@ li:nth-child(even) details {
 	background: #e0f0ff;
 	border-color: #a0c0f0;
 }
+
+input {
+	font-size: 120%;
+	padding: 0.5em;
+	margin: 0 1em 1em 1em;
+}
