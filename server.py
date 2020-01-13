@@ -146,10 +146,12 @@ class State:
 	spec = None; spec_slot = None # Who you're spectating, if any
 	is_new_match = True # Set when new match started, reset only when round status requested
 	round_start = None # Time when the most recent round started (defined by the end of freeze time)
+	bomb_plant = None # Time when the bomb got planted - bomb_plant-round_start = time to plant.
 	frozen = False # Are we in freeze time?
 	warmup = False # Are we in warmup? Technically not a three-way state with frozen, though they are unlikely ever to both be True.
 	playing = False # Are we even playing the game? What IS this?
-	round_timer = 0.0 # How long is a round (counting just after freeze time ends)?
+	round_timer = { } # How long is a round (counting just after freeze time ends)? How long is the bomb timer?
+
 @route.get("/status") # deprecated
 async def round_status(req):
 	# Key pieces of info:
@@ -159,6 +161,7 @@ async def round_status(req):
 	if not State.playing: return web.Response(text="n/a")
 	resp = State.is_new_match * "--new-block " + State.round_desc
 	if State.round_start: resp += " (%.1fs)" % (time.time() - State.round_start)
+	if State.bomb_plant: resp += " (b%.1fs)" % (time.time() - State.bomb_plant)
 	State.is_new_match = False
 	return web.Response(text=resp)
 
@@ -172,8 +175,10 @@ async def round_status_json(req):
 		"spec": [State.spec, State.spec_slot],
 		"score": [State.ct_score, State.t_score],
 		"time": (time.time() - State.round_start) if State.round_start else None
+		"bombtime": (time.time() - State.bomb_plant) if State.bomb_plant else None
 	}
 	if State.round_start: resp["desc"] += " (%.1fs)" % (time.time() - State.round_start)
+	if State.bomb_plant: resp["desc"] += " (b%.1fs)" % (time.time() - State.bomb_plant)
 	State.is_new_match = False
 	return web.json_response(resp)
 
@@ -197,7 +202,7 @@ async def update_configs(req):
 	if phase == "warmup":
 		if not State.warmup:
 			State.is_new_match = State.warmup = True
-			State.round_timer = 0.0
+			State.round_timer = { }
 		round = 0
 	else:
 		State.warmup = False
@@ -217,25 +222,35 @@ async def update_configs(req):
 		# having useful information in it. Thanks so much, CS:GO.
 		State.round_start = time.time()
 		State.frozen = False
-		p = data.get("phase_countdowns")
-		if p and p["phase"] == "live":
-			# When spectating, we get the phase time, which tells us the
-			# round timer. But we don't always get it instantly, and it's
-			# entirely possible we'll jump around some. However we know
-			# for sure that the time left will never EXCEED the round time,
-			# so we take the longest timer ever seen (this block) and
-			# assume that that's the round time.
-			State.round_timer = max(State.round_timer, float(p["phase_ends_in"]))
-			print("Freeze time ends - round time is", p["phase_ends_in"])
+	if State.bomb_plant is None and lookup(data, "round:bomb") == "planted":
+		State.bomb_plant = time.time()
+	p = data.get("phase_countdowns")
+	if p:
+		# When spectating, we get the phase time, which tells us the
+		# round timer. But we don't always get it instantly, and it's
+		# entirely possible we'll jump around some. However we know
+		# for sure that the time left will never EXCEED the round time,
+		# so we take the longest timer ever seen (this block) and
+		# assume that that's the round time.
+		State.round_timer[p["phase"]] = max(State.round_timer.get(p["phase"], 0.0), float(p["phase_ends_in"]))
+		# print(p["phase"], p["phase_ends_in"], end="\r")
+		# If we're spectating (ie if we have round_timer), send current timing info.
+		# The bomb disrupts our ability to do this, though. Ideally, send to all
+		# notes clients the round number, the position within the round, and an
+		# inversion factor of the round_timer. It can then use position-within-round
+		# to choose which entry to highlight, and the inversion factor to change
+		# count-up times ("time since freeze ended") into count-down times ("1:44").
+		# Furthermore, any recording with a "bombtime" attribute can be inverted
+		# using the bomb timer inversion, so it would show the bomb's countdown.
+		# If phase is "live", use metadata["time"]; if phase is "bomb", use
+		# metadata["bombtime"] if it exists, otherwise assume that we're past it.
+		# Either way, if phasetime is greater than the recording time, we're past.
+		await broadcast({
+			"type": "position", "round": round, "phase": p["phase"],
+			"phasetime": State.round_timer[p["phase"]] - float(p["phase_ends_in"]),
+			"inversions": State.round_timer,
+		}, block=int)
 	State.round = round
-	# If we're spectating (ie if we have round_timer), send current timing info.
-	# The bomb disrupts our ability to do this, though. Ideally, send to all
-	# notes clients the round number, the position within the round, and an
-	# inversion factor of the round_timer. It can then use position-within-round
-	# to choose which entry to highlight, and the inversion factor to change
-	# count-up times ("time since freeze ended") into count-down times ("1:44").
-	# TODO.
-	# await broadcast({"type": "position", "round": round, "time": ???, "inversion": State.round_timer}, block=int)
 	State.ct_score = lookup(data, "map:team_ct:score", "--")
 	State.t_score = lookup(data, "map:team_t:score", "--")
 	State.round_desc = "R%d (%s::%s)" % (round, State.ct_score, State.t_score)

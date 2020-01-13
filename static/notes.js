@@ -56,11 +56,12 @@ function init_socket() {
 			case "quiet": break //Ignore the mute/unmute signals
 			case "inited": console.log("Connected."); break;
 			case "hello": console.log("Hello, world"); break;
+			case "metadata": update_meta(msg.metadata); break;
 			//On GSI position signal (round and time-within-round):
 			//Locate the first recording that is in the current round,
 			//and is after the current time. If that is ahead of the
 			//currently selected recording, advance to it.
-			case "metadata": update_meta(msg.metadata); break;
+			case "position": console.log("Position:", msg); break;
 		}
 	};
 	//Automatically reconnect (after a one-second delay to prevent spinning)
