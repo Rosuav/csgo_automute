@@ -1,0 +1,11 @@
+details {
+	background: #e0fff0;
+	border: 2px solid #a0f0c0;
+	margin: 1em;
+	max-width: 50em;
+}
+
+li:nth-child(even) details {
+	background: #e0f0ff;
+	border-color: #a0c0f0;
+}
