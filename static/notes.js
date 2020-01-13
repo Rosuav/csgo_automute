@@ -17,6 +17,12 @@ function click_recording(ev) {
 	select_recording(ev.currentTarget.closest("li").dataset.id);
 }
 document.getElementById("nextbutton").onclick = () => select_recording(current_recording + 1);
+document.getElementById("playbutton").onclick = () => {
+	const li = document.querySelector(`li[data-id="${current_recording}"]`);
+	if (!li) {console.log("Nothing selected, can't play audio."); return;}
+	li.querySelector("audio").play();
+	li.querySelector("input").focus();
+};
 
 function render_recording(rec) {
 	return LI({"data-id": rec.id}, DETAILS({onclick: click_recording}, [
