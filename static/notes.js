@@ -45,6 +45,34 @@ function update_meta(newmeta) {
 		ul.appendChild(render_recording(metadata.recordings[i]));
 }
 
+function find_next(info) {
+	//let msg = info.phase;
+	metadata.recordings.forEach(rec => {
+		let relation = "unknown";
+		if (rec.round < info.round) relation = "past";
+		else if (rec.round > info.round) relation = "future";
+		else switch (info.phase) {
+			case "freezetime": relation = "future"; break;
+			case "live": relation = {false:"past", true:"future"}[info.phasetime < rec.time]; break;
+			case "bomb": relation = {false:"past", true:"future"}[info.phasetime < rec.bombtime]; break;
+			default: relation = "unknown_within_round";
+		}
+		//msg += " " + rec.id + " " + relation;
+		//Okay, so.... we can't be certain. But let's do what we can.
+		const cur = metadata.recordings.find(r => r.id === current_recording);
+		//If the currently-selected one isn't for the current round (or there's
+		//none selected), and there is a recording for the current round, select
+		//it. (Since we work sequentially, it'll pick the first.)
+		if (rec.round === info.round && (!cur || cur.round !== info.round))
+			select_recording(rec.id);
+		//If we're definitely past this point, pick the next one.
+		if (rec.id === current_recording && relation === "past")
+			select_recording(current_recording + 1);
+		//Otherwise, leave the current one selected.
+	});
+	//console.log(msg);
+}
+
 const protocol = window.location.protocol == "https:" ? "wss://" : "ws://";
 let socket;
 function init_socket() {
@@ -61,7 +89,7 @@ function init_socket() {
 			//Locate the first recording that is in the current round,
 			//and is after the current time. If that is ahead of the
 			//currently selected recording, advance to it.
-			case "position": console.log("Position:", msg); break;
+			case "position": find_next(msg); break;
 		}
 	};
 	//Automatically reconnect (after a one-second delay to prevent spinning)

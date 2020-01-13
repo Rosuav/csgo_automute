@@ -29,7 +29,7 @@ async def broadcast(msg, *, origin=None, block=None):
 	for client in clients:
 		if client is origin: continue
 		if block is int and not client.notes_block: continue
-		elif block is not None and client.notes_block != block: continue
+		elif isinstance(block, int) and client.notes_block != block: continue
 		await client.send_json(msg)
 
 @route.get("/")
@@ -245,7 +245,10 @@ async def update_configs(req):
 		# using the bomb timer inversion, so it would show the bomb's countdown.
 		# If phase is "live", use metadata["time"]; if phase is "bomb", use
 		# metadata["bombtime"] if it exists, otherwise assume that we're past it.
+		# For any other phase... uhh, we can't really know. (For instance, phase
+		# changes to "defusing" if a CT taps the bomb. With its own end timer.)
 		# Either way, if phasetime is greater than the recording time, we're past.
+		# print("Sending position info", p["phase"], State.round_timer[p["phase"]] - float(p["phase_ends_in"]))
 		await broadcast({
 			"type": "position", "round": round, "phase": p["phase"],
 			"phasetime": State.round_timer[p["phase"]] - float(p["phase_ends_in"]),
