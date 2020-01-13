@@ -221,6 +221,7 @@ async def update_configs(req):
 		# is NOT reliable; sometimes, previously:round is True instead of actually
 		# having useful information in it. Thanks so much, CS:GO.
 		State.round_start = time.time()
+		State.bomb_plant = None # In the unlikely event that the bomb's already planted, the next check will update this.
 		State.frozen = False
 	if State.bomb_plant is None and lookup(data, "round:bomb") == "planted":
 		State.bomb_plant = time.time()
@@ -233,7 +234,7 @@ async def update_configs(req):
 		# so we take the longest timer ever seen (this block) and
 		# assume that that's the round time.
 		State.round_timer[p["phase"]] = max(State.round_timer.get(p["phase"], 0.0), float(p["phase_ends_in"]))
-		# print(p["phase"], p["phase_ends_in"], end="\r")
+		# print(p["phase"], p["phase_ends_in"], end="\x1b[K\r")
 		# If we're spectating (ie if we have round_timer), send current timing info.
 		# The bomb disrupts our ability to do this, though. Ideally, send to all
 		# notes clients the round number, the position within the round, and an
