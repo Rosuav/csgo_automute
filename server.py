@@ -23,11 +23,13 @@ async def broadcast(msg, *, origin=None, block=None):
 
 	Will not send to the message's origin (if applicable),
 	and can restrict to only those clients using a particular
-	block of notes.
+	block of notes. If block is int, will send to all clients
+	that have an integer block set.
 	"""
 	for client in clients:
 		if client is origin: continue
-		if block is not None and client.notes_block != block: continue
+		if block is int and not client.notes_block: continue
+		elif block is not None and client.notes_block != block: continue
 		await client.send_json(msg)
 
 @route.get("/")
@@ -226,6 +228,14 @@ async def update_configs(req):
 			State.round_timer = max(State.round_timer, float(p["phase_ends_in"]))
 			print("Freeze time ends - round time is", p["phase_ends_in"])
 	State.round = round
+	# If we're spectating (ie if we have round_timer), send current timing info.
+	# The bomb disrupts our ability to do this, though. Ideally, send to all
+	# notes clients the round number, the position within the round, and an
+	# inversion factor of the round_timer. It can then use position-within-round
+	# to choose which entry to highlight, and the inversion factor to change
+	# count-up times ("time since freeze ended") into count-down times ("1:44").
+	# TODO.
+	# await broadcast({"type": "position", "round": round, "time": ???, "inversion": State.round_timer}, block=int)
 	State.ct_score = lookup(data, "map:team_ct:score", "--")
 	State.t_score = lookup(data, "map:team_t:score", "--")
 	State.round_desc = "R%d (%s::%s)" % (round, State.ct_score, State.t_score)
