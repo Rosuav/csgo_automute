@@ -42,4 +42,6 @@ function init_socket() {
 if (block) {
 	init_socket();
 	fetch("/recordings/" + block + "/metadata.json").then(r => r.json()).then(r => update_meta(r));
+} else {
+	set_content("#recordings", LI("No recordings. Refresh to show info."));
 }
