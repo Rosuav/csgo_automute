@@ -1,14 +1,16 @@
 import choc, {set_content} from "https://rosuav.github.io/shed/chocfactory.js";
-const {AUDIO, B, DETAILS, LI, P, PRE, SUMMARY} = choc;
+const {AUDIO, B, DETAILS, DIV, INPUT, LI, P, PRE, SUMMARY} = choc;
 
 const block = parseInt(window.location.hash.substr(1), 10); //If NaN, we don't have block info
 
 function render_recording(rec) {
 	return LI(DETAILS([
 		SUMMARY([B(rec.google), " " + rec.desc]),
-		PRE(rec.sphinx.join("\n")),
-		rec.spec[0] && P(`Spectating ${rec.spec[0]} (${rec.spec[1]})`),
 		rec.time && P(`At ${rec.time.toFixed(1)}s`),
+		rec.spec[0] && P(`Spectating ${rec.spec[0]} (${rec.spec[1]})`),
+		PRE(rec.sphinx.join("\n") + "\n" + rec.google),
+		DIV(INPUT({value: rec.google})),
+		DIV(AUDIO({controls: true, src: `/recordings/${block}${rec.filename}`})),
 	]));
 }
 
@@ -21,7 +23,6 @@ function update_meta(newmeta) {
 	for (let i = ul.children.length; i < metadata.recordings.length; ++i)
 		ul.appendChild(render_recording(metadata.recordings[i]));
 }
-//set_content("p", AUDIO({controls: true, src: "/recordings/6/02 - R1 (0::0) spec-2-Gunner.flac"}));
 
 const protocol = window.location.protocol == "https:" ? "wss://" : "ws://";
 let socket;
