@@ -18,11 +18,17 @@ runner = web.AppRunner(app)
 clients = []
 quiet = False
 
-async def broadcast(msg, origin=None):
-	"""Broadcast a message to all clients, except its origin (if applicable)"""
+async def broadcast(msg, *, origin=None, block=None):
+	"""Broadcast a message to all/some clients
+
+	Will not send to the message's origin (if applicable),
+	and can restrict to only those clients using a particular
+	block of notes.
+	"""
 	for client in clients:
-		if client is not origin:
-			await client.send_json(msg)
+		if client is origin: continue
+		if block is not None and client.notes_block != block: continue
+		await client.send_json(msg)
 
 @route.get("/")
 async def home(req):
@@ -169,12 +175,15 @@ async def round_status_json(req):
 	State.is_new_match = False
 	return web.json_response(resp)
 
-@route.post("/metadata/<block>")
-async def update_metadata(block):
+@route.post("/metadata/{block:[0-9]+}")
+async def update_metadata(req):
 	# TODO: Accept the JSON payload and notify all connected clients that
 	# this block now has new metadata available. The payload should be
 	# identical to what would be given by GET /recordings/<block>/metadata.json
 	# but will be sent over the websocket for instant update.
+	meta = await req.json()
+	block = int(req.match_info["block"])
+	await broadcast({"type": "metadata", "block": block, "metadata": meta}, block=block)
 	return web.Response(text="OK")
 
 @route.post("/gsi")
