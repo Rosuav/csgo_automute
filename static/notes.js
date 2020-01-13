@@ -5,18 +5,21 @@ const block = parseInt(window.location.hash.substr(1), 10); //If NaN, we don't h
 
 let current_recording = -1;
 function select_recording(which) {
-	current_recording = parseInt(which.currentTarget ? which.currentTarget.closest("li").dataset.id : which, 10);
+	current_recording = parseInt(which, 10);
 	for (const li of document.getElementById("recordings").children) {
 		const sel = parseInt(li.dataset.id, 10) === current_recording;
 		li.firstChild.open = sel;
 	}
 }
+function click_recording(ev) {
+	ev.preventDefault();
+	select_recording(ev.currentTarget.closest("li").dataset.id);
+}
 //window.next = () => select_recording(current_recording + 1); //for debugging
 
 function render_recording(rec) {
-	return LI({"data-id": rec.id}, DETAILS([
+	return LI({"data-id": rec.id}, DETAILS({onclick: click_recording}, [
 		SUMMARY([B(rec.google), " " + rec.desc]),
-		BUTTON({type: "button", onclick: select_recording}, "Select"),
 		rec.time && P(`At ${rec.time.toFixed(1)}s`),
 		rec.spec[0] && P(`Spectating ${rec.spec[0]} (${rec.spec[1]})`),
 		PRE(rec.sphinx.join("\n") + "\n" + rec.google),
