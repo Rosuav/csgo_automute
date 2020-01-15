@@ -24,13 +24,17 @@ document.getElementById("playbutton").onclick = () => {
 	li.querySelector("input").focus();
 };
 
+function update_summary() {
+	set_content(this.closest("details").querySelector("summary b"), this.value);
+}
+
 function render_recording(rec) {
 	return LI({"data-id": rec.id}, DETAILS({onclick: click_recording}, [
 		SUMMARY([B(rec.google), " " + rec.desc]),
 		rec.time && P(`At ${rec.time.toFixed(1)}s`),
 		rec.spec[0] && P(`Spectating ${rec.spec[0]} (${rec.spec[1]})`),
 		PRE(rec.sphinx.join("\n") + "\n" + rec.google),
-		DIV(INPUT({value: rec.google})),
+		DIV(INPUT({value: rec.google, oninput: update_summary})),
 		DIV(AUDIO({controls: true, src: `/recordings/${block}${rec.filename}`})),
 	]));
 }
