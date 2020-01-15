@@ -1,5 +1,5 @@
 import choc, {set_content} from "https://rosuav.github.io/shed/chocfactory.js";
-const {AUDIO, B, BUTTON, DETAILS, DIV, INPUT, LI, P, PRE, SUMMARY} = choc;
+const {AUDIO, B, BUTTON, DETAILS, DIV, INPUT, LI, P, PRE, SPAN, SUMMARY} = choc;
 
 const block = parseInt(window.location.hash.substr(1), 10); //If NaN, we don't have block info
 
@@ -31,11 +31,13 @@ function update_summary() {
 function render_recording(rec) {
 	return LI({"data-id": rec.id}, DETAILS({onclick: click_recording}, [
 		SUMMARY([B(rec.google), " " + rec.desc]),
-		rec.time && P(`At ${rec.time.toFixed(1)}s`),
-		rec.spec[0] && P(`Spectating ${rec.spec[0]} (${rec.spec[1]})`),
-		PRE(rec.sphinx.join("\n") + "\n" + rec.google),
-		DIV(INPUT({value: rec.google, oninput: update_summary})),
-		DIV(AUDIO({controls: true, src: `/recordings/${block}${rec.filename}`})),
+		DIV([ //Formatting shim b/c making details display:flex doesn't seem to work.
+			rec.time && SPAN(`At ${rec.time.toFixed(1)}s`),
+			rec.spec[0] && SPAN(`Spectating ${rec.spec[0]} (${rec.spec[1]})`),
+			PRE(rec.sphinx.join("\n") + "\n" + rec.google),
+			INPUT({value: rec.google, oninput: update_summary}),
+			AUDIO({controls: true, src: `/recordings/${block}${rec.filename}`}),
+		]),
 	]));
 }
 

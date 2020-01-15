@@ -13,6 +13,11 @@ li:nth-child(even) details {
 input {
 	font-size: 120%;
 	padding: 0.5em;
-	margin: 0 1em 1em 1em;
-	width: 90%; /* can't be bothered, probably should switch details to flexbox some time */
+	margin-bottom: 1em;
+}
+
+details > div {
+	display: flex;
+	flex-direction: column;
+	padding: 1em;
 }
