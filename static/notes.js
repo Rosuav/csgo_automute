@@ -95,7 +95,7 @@ function find_next(info) {
 	});
 	//console.log(msg);
 	//Update all the times based on the known inversions
-	//console.log(info.inversions); //Could potentially have quite a few inversions incl freeze and warmup (TODO: check timeouts)
+	//console.log(info.inversions); //Could potentially have quite a few inversions incl freezetime, warmup, timeout_t/ct
 	if (info.inversions.live !== invert_live || info.inversions.bomb !== invert_bomb)
 	{
 		invert_live = info.inversions.live; invert_bomb = info.inversions.bomb;

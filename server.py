@@ -213,7 +213,7 @@ async def update_configs(req):
 		# or freeze time, they probably apply to the PREVIOUS round, so we subtract
 		# one again. Or, yaknow, just don't add the one in the first place.
 		if rdphase == "live": round += 1
-	if rdphase == "freezetime":
+	if rdphase == "freezetime": # TODO: Does this include timeout?
 		State.frozen = True
 	if State.frozen and rdphase != "freezetime":
 		# We WERE in freeze time, but now we're not. Jot down the time so we can
