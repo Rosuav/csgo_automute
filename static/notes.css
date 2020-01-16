@@ -21,3 +21,7 @@ details > div {
 	flex-direction: column;
 	padding: 1em;
 }
+
+.inverted {
+	margin-left: 1em;
+}

@@ -28,11 +28,27 @@ function update_summary() {
 	set_content(this.closest("details").querySelector("summary b"), this.value);
 }
 
+let invert_live = 115, invert_bomb = 40; //Normal values for compet matchmaking; will be overridden by GSI if available.
+function update_inversions(el) {
+	if (!invert_live) return el;
+	const tm = invert_live - el.dataset.time, bomb = invert_bomb - el.dataset.bombtime;
+	if (tm < 0) return el; //If a recording happened post-round, don't say "-1:-2"
+	const sec = Math.floor(tm) % 60;
+	let msg = Math.floor(tm / 60) + (sec < 10 ? ":0" : ":") + sec;
+	if (bomb === bomb) { //If el.dataset.bombtime is "null" (or invert_bomb is undefined) then bomb will be NaN
+		//Bomb timer is usually less than a minute, so no mm:ss here.
+		msg += " - bomb " + Math.floor(bomb) + "s";
+	}
+	return set_content(el, msg);
+}
+
 function render_recording(rec) {
 	return LI({"data-id": rec.id}, DETAILS({onclick: click_recording}, [
 		SUMMARY([B(rec.google), " " + rec.desc]),
 		DIV([ //Formatting shim b/c making details display:flex doesn't seem to work.
-			rec.time && SPAN(`At ${rec.time.toFixed(1)}s`),
+			rec.time && SPAN([`At ${rec.time.toFixed(1)}s `,
+				update_inversions(B({className: "inverted", "data-time": rec.time, "data-bombtime": rec.bombtime}))
+			]),
 			rec.spec[0] && SPAN(`Spectating ${rec.spec[0]} (${rec.spec[1]})`),
 			PRE(rec.sphinx.join("\n") + "\n" + rec.google),
 			INPUT({value: rec.google, oninput: update_summary}),
@@ -46,9 +62,10 @@ function update_meta(newmeta) {
 	metadata = newmeta;
 	if (!metadata.recordings) metadata.recordings = [];
 	const ul = document.getElementById("recordings");
-	if (ul.children.length === metadata.recordings.length) return;
-	for (let i = ul.children.length; i < metadata.recordings.length; ++i)
+	for (let i = ul.children.length; i < metadata.recordings.length; ++i) {
 		ul.appendChild(render_recording(metadata.recordings[i]));
+		select_recording(metadata.recordings[i].id);
+	}
 }
 
 function find_next(info) {
@@ -77,6 +94,14 @@ function find_next(info) {
 		//Otherwise, leave the current one selected.
 	});
 	//console.log(msg);
+	//Update all the times based on the known inversions
+	//console.log(info.inversions); //Could potentially have quite a few inversions incl freeze and warmup (TODO: check timeouts)
+	if (info.inversions.live !== invert_live || info.inversions.bomb !== invert_bomb)
+	{
+		invert_live = info.inversions.live; invert_bomb = info.inversions.bomb;
+		//console.log("Live:", invert_live, "Bomb:", invert_bomb);
+		document.querySelectorAll(".inverted").forEach(el => update_inversions(el));
+	}
 }
 
 const protocol = window.location.protocol == "https:" ? "wss://" : "ws://";
