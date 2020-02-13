@@ -166,6 +166,7 @@ async def round_status(req):
 	return web.Response(text=resp)
 
 @route.get("/status.json")
+# Use /status.json?silent=true to get status without resetting new-match status
 async def round_status_json(req):
 	resp = {
 		"playing": State.playing,
@@ -179,7 +180,7 @@ async def round_status_json(req):
 	}
 	if State.round_start: resp["desc"] += " (%.1fs)" % (time.time() - State.round_start)
 	if State.bomb_plant: resp["desc"] += " (b%.1fs)" % (time.time() - State.bomb_plant)
-	State.is_new_match = False
+	if req.query.get("silent") != "true": State.is_new_match = False
 	return web.json_response(resp)
 
 @route.post("/metadata/{block:[0-9]+}")
