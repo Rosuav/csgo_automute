@@ -42,7 +42,8 @@ function keep(tab)
 {
 	automuted[tab.id] = false;
 	chrome.tabs.update(tab.id, {"muted": false}); //Force it to be unmuted
-	nomute[tab.id] = 30000 + +new Date; //30,000 ms or 30 seconds
+	if (nomute[tab.id] > +new Date) nomute[tab.id] += 30000;
+	else nomute[tab.id] = 30000 + +new Date; //30,000 ms or 30 seconds
 }
 const alltabs = f => chrome.tabs.query({}, tabs => tabs.forEach(f));
 const curtab = f => chrome.tabs.query({active: true, currentWindow: true}, tabs => tabs[0] && f(tabs[0]));
