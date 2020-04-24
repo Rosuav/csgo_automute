@@ -265,15 +265,22 @@ async def update_configs(req):
 	# to try to "fingerprint" the match. The chances that two comp matches
 	# have the same people in them are very low, so even if we have only
 	# partial information about who's in what slot, it might be helpful.
-	# The question is: Is the data stable across a match?
+	# The question is: Is the data stable within a match? What if people
+	# disconnect and perhaps rejoin? Especially multiple times?
+	# In replays, bot takeover doesn't impact the allplayers mapping, but
+	# disconnections do. The array actually collapses,  closing the gap,
+	# until the bot is inserted as a replacement. Unsure of reconnections.
+	# Need to find out what happens during the match itself.
+	# Can I recognize bots???
 	slot = lookup(data, "player:observer_slot", "?")
 	id = lookup(data, "player:steamid")
 	if slot not in State.players:
 		State.players[slot] = id
-		print("Sighted a new player: slot %s is %s" % (slot, lookup(data, "player:name", "?")))
+		print("Sighted a new player: slot %s is %s (%s)" % (slot, lookup(data, "player:name", "?"), id))
 	elif State.players[slot] != id:
 		State.players[slot] = id
-		print("*** CHANGED PLAYER IN SLOT: slot %s is %s" % (slot, lookup(data, "player:name", "?")))
+		print("*** CHANGED PLAYER IN SLOT: slot %s is %s (%s)" % (slot, lookup(data, "player:name", "?"), id))
+	# end hackery
 
 	if lookup(data, "player:steamid", "X") != lookup(data, "provider:steamid", "Y"):
 		# If you're not observing yourself, record who you ARE observing.
@@ -292,6 +299,10 @@ async def update_configs(req):
 		# we must be spectating - possibly watching a replay - and so the
 		# normal muting rules don't apply.
 		new_quiet = False
+		# players = {p["observer_slot"] or 10: p["name"] for p in data["allplayers"].values()}
+		# for slot, name in sorted(players.items()):
+			# print(slot % 10, name)
+		# print()
 	global quiet
 	if new_quiet != quiet:
 		quiet = new_quiet
