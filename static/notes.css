@@ -13,7 +13,7 @@ li:nth-child(even) details {
 input {
 	font-size: 120%;
 	padding: 0.5em;
-	margin-bottom: 1em;
+	margin-bottom: 0.5em;
 }
 
 details > div {
@@ -24,4 +24,9 @@ details > div {
 
 .inverted {
 	margin-left: 1em;
+}
+
+audio {
+	display: block;
+	height: 1.5em;
 }
