@@ -43,6 +43,7 @@ function update_inversions(el) {
 }
 
 function render_recording(rec) {
+	//TODO: Show the countdown times by default rather than the countups
 	return LI({"data-id": rec.id}, DETAILS({onclick: click_recording}, [
 		SUMMARY([B(rec.google), " " + rec.desc]),
 		DIV([ //Formatting shim b/c making details display:flex doesn't seem to work.
@@ -74,6 +75,7 @@ function find_next(info) {
 	//associated with the PREVIOUS round), but for playback, we want to link freeze
 	//to the UPCOMING round. So we increment the round number here to match.
 	if (info.phase === "freezetime") info.round++;
+	//TODO: If the next recording is for more than a round away, show it differently.
 	//let msg = info.phase;
 	metadata.recordings.forEach(rec => {
 		let relation = "unknown";
