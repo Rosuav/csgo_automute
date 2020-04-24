@@ -43,13 +43,16 @@ function update_inversions(el) {
 }
 
 function render_recording(rec) {
-	//TODO: Show the countdown times by default rather than the countups
+	const times = {className: "inverted", "data-time": rec.time, "data-bombtime": rec.bombtime};
 	return LI({"data-id": rec.id}, DETAILS({onclick: click_recording}, [
-		SUMMARY([B(rec.google), " " + rec.desc]),
+		SUMMARY([
+			"R" + rec.round + " ",
+			B(rec.google),
+			rec.spec[0] && ` (${rec.spec[1]}-${rec.spec[0]})`,
+			update_inversions(SPAN(times, rec.time.toFixed(1) + "s"))
+		]),
 		DIV([ //Formatting shim b/c making details display:flex doesn't seem to work.
-			rec.time && SPAN([`At ${rec.time.toFixed(1)}s `,
-				update_inversions(B({className: "inverted", "data-time": rec.time, "data-bombtime": rec.bombtime}))
-			]),
+			rec.time && SPAN([`At ${rec.time.toFixed(1)}s `, update_inversions(B(times))]),
 			rec.spec[0] && SPAN(`Spectating ${rec.spec[0]} (${rec.spec[1]})`),
 			PRE(rec.sphinx.join("\n") + "\n" + rec.google),
 			INPUT({value: rec.google, oninput: update_summary}),
