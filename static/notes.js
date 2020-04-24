@@ -69,6 +69,11 @@ function update_meta(newmeta) {
 }
 
 function find_next(info) {
+	//The round number in CS:GO is zero-based, but is incremented if phase is live.
+	//This is correct for recording mode (since notes taken during freeze time are
+	//associated with the PREVIOUS round), but for playback, we want to link freeze
+	//to the UPCOMING round. So we increment the round number here to match.
+	if (info.phase === "freezetime") info.round++;
 	//let msg = info.phase;
 	metadata.recordings.forEach(rec => {
 		let relation = "unknown";
