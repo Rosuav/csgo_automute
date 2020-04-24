@@ -151,6 +151,7 @@ class State:
 	warmup = False # Are we in warmup? Technically not a three-way state with frozen, though they are unlikely ever to both be True.
 	playing = False # Are we even playing the game? What IS this?
 	round_timer = { } # How long is a round (counting just after freeze time ends)? How long is the bomb timer?
+	players = { } # Map observer slot to steam ID for all known players
 
 @route.get("/status") # deprecated
 async def round_status(req):
@@ -204,6 +205,7 @@ async def update_configs(req):
 		if not State.warmup:
 			State.is_new_match = State.warmup = True
 			State.round_timer = { }
+			State.players = { }
 		round = 0
 	else:
 		State.warmup = False
@@ -259,6 +261,20 @@ async def update_configs(req):
 	State.ct_score = lookup(data, "map:team_ct:score", "--")
 	State.t_score = lookup(data, "map:team_t:score", "--")
 	State.round_desc = "R%d" % round
+	# TODO: Record as many observer slot entries (by steamid) as possible,
+	# to try to "fingerprint" the match. The chances that two comp matches
+	# have the same people in them are very low, so even if we have only
+	# partial information about who's in what slot, it might be helpful.
+	# The question is: Is the data stable across a match?
+	slot = lookup(data, "player:observer_slot", "?")
+	id = lookup(data, "player:steamid")
+	if slot not in State.players:
+		State.players[slot] = id
+		print("Sighted a new player: slot %s is %s" % (slot, lookup(data, "player:name", "?")))
+	elif State.players[slot] != id:
+		State.players[slot] = id
+		print("*** CHANGED PLAYER IN SLOT: slot %s is %s" % (slot, lookup(data, "player:name", "?")))
+
 	if lookup(data, "player:steamid", "X") != lookup(data, "provider:steamid", "Y"):
 		# If you're not observing yourself, record who you ARE observing.
 		State.spec = lookup(data, "player:name", "?")
