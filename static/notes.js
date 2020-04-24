@@ -52,7 +52,7 @@ function render_recording(rec) {
 			rec.spec[0] && SPAN(`Spectating ${rec.spec[0]} (${rec.spec[1]})`),
 			PRE(rec.sphinx.join("\n") + "\n" + rec.google),
 			INPUT({value: rec.google, oninput: update_summary}),
-			AUDIO({controls: true, src: `/recordings/${block}${rec.filename}`}),
+			AUDIO({controls: true, preload: "auto", src: `/recordings/${block}${rec.filename}`}),
 		]),
 	]));
 }
