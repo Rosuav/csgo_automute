@@ -88,6 +88,7 @@ function find_next(info) {
 			case "freezetime": relation = "future"; break;
 			case "live": relation = {false:"past", true:"future"}[info.phasetime < rec.time]; break;
 			case "bomb": relation = {false:"past", true:"future"}[info.phasetime < rec.bombtime]; break;
+			case "over": relation = "past"; break; //sigh... don't really have a good way to handle this
 			default: relation = "unknown_within_round";
 		}
 		//msg += " " + rec.id + " " + relation;
