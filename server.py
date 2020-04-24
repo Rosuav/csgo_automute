@@ -258,7 +258,7 @@ async def update_configs(req):
 	State.round = round
 	State.ct_score = lookup(data, "map:team_ct:score", "--")
 	State.t_score = lookup(data, "map:team_t:score", "--")
-	State.round_desc = "R%d (%s::%s)" % (round, State.ct_score, State.t_score)
+	State.round_desc = "R%d" % round
 	if lookup(data, "player:steamid", "X") != lookup(data, "provider:steamid", "Y"):
 		# If you're not observing yourself, record who you ARE observing.
 		State.spec = lookup(data, "player:name", "?")
