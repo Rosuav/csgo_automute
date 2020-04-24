@@ -44,12 +44,12 @@ function update_inversions(el) {
 
 function render_recording(rec) {
 	const times = {className: "inverted", "data-time": rec.time, "data-bombtime": rec.bombtime};
-	return LI({"data-id": rec.id}, DETAILS({onclick: click_recording}, [
+	return LI({"data-id": rec.id, "data-round": rec.round}, DETAILS({onclick: click_recording}, [
 		SUMMARY([
 			"R" + rec.round + " ",
 			B(rec.google),
 			rec.spec[0] && ` (${rec.spec[1]}-${rec.spec[0]})`,
-			update_inversions(SPAN(times, rec.time.toFixed(1) + "s"))
+			update_inversions(SPAN(times, rec.time.toFixed(1) + "s")),
 		]),
 		DIV([ //Formatting shim b/c making details display:flex doesn't seem to work.
 			rec.time && SPAN([`At ${rec.time.toFixed(1)}s `, update_inversions(B(times))]),
@@ -78,7 +78,11 @@ function find_next(info) {
 	//associated with the PREVIOUS round), but for playback, we want to link freeze
 	//to the UPCOMING round. So we increment the round number here to match.
 	if (info.phase === "freezetime") info.round++;
-	//TODO: If the next recording is for more than a round away, show it differently.
+	//If the next recording is for multiple rounds away, mark it as such.
+	document.querySelectorAll("li[data-round]").forEach(li => {
+		const rd = li.dataset.round - info.round;
+		li.querySelector("summary").dataset.future = rd > 2 ? rd + " rd" : "";
+	});
 	//let msg = info.phase;
 	metadata.recordings.forEach(rec => {
 		let relation = "unknown";

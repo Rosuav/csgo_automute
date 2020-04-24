@@ -30,3 +30,12 @@ audio {
 	display: block;
 	height: 1.5em;
 }
+
+details {position: relative;}
+details[open] > summary[data-future$=" rd"]:after {
+	content: "* " attr(data-future) " *";
+	display: inline-block;
+	position: absolute;
+	right: 0;
+	background: yellow;
+}
