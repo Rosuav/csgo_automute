@@ -49,7 +49,7 @@ function render_recording(rec) {
 			"R" + rec.round + " ",
 			B(rec.google),
 			rec.spec[0] && ` (${rec.spec[1]}-${rec.spec[0]})`,
-			update_inversions(SPAN(times, rec.time.toFixed(1) + "s")),
+			rec.time && update_inversions(SPAN(times, rec.time.toFixed(1) + "s")),
 		]),
 		DIV([ //Formatting shim b/c making details display:flex doesn't seem to work.
 			rec.time && SPAN([`At ${rec.time.toFixed(1)}s `, update_inversions(B(times))]),
