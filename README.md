@@ -9,6 +9,9 @@ audio. Will unmute when you're out of a match, but only the tabs that it muted
 (so you can manually mute a tab and it'll stay muted). There is currently no
 way to request that a particular tab remain unmuted.
 
+Mute icon from https://www.iconfinder.com/icons/227576/mute_icon and available
+under the terms of CC-BY-3.0. Created by Cole Bennis.
+
 To publish a new version:
 
 1. Bump the version number in the manifest

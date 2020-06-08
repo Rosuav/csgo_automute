@@ -2,7 +2,7 @@
 	"manifest_version": 2,
 	"name": "WebSocket Tab Muter",
 	"description": "In response to a signal from a websocket or hotkey, mutes/unmutes all tabs",
-	"version": "0.3",
+	"version": "0.3.1",
 	"background": {
 		"scripts": ["muter.js"]
 	},
