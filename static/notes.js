@@ -4,19 +4,20 @@ const {AUDIO, B, BUTTON, DETAILS, DIV, INPUT, LI, P, PRE, SPAN, SUMMARY} = choc;
 const block = parseInt(window.location.hash.substr(1), 10); //If NaN, we don't have block info
 
 let current_recording = 0;
-function select_recording(which) {
+function select_recording(which, wrap) {
 	current_recording = parseInt(which, 10);
 	for (const li of document.getElementById("recordings").children) {
 		const sel = parseInt(li.dataset.id, 10) === current_recording;
 		li.firstChild.open = sel;
-		if (sel) li.querySelector("input").focus();
+		if (sel) {li.querySelector("input").focus(); wrap = false;}
 	}
+	if (wrap) select_recording(1); //Without wrap, so we can't infinitely loop on no recordings
 }
 function click_recording(ev) {
 	ev.preventDefault();
 	select_recording(ev.currentTarget.closest("li").dataset.id);
 }
-document.getElementById("nextbutton").onclick = () => select_recording(current_recording + 1);
+document.getElementById("nextbutton").onclick = () => select_recording(current_recording + 1, 1);
 document.getElementById("playbutton").onclick = () => {
 	const li = document.querySelector(`li[data-id="${current_recording}"]`);
 	if (!li) {console.log("Nothing selected, can't play audio."); return;}
