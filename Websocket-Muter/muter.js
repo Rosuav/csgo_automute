@@ -6,6 +6,12 @@
 
 console.log("Chrome:", chrome);
 
+/*
+TODO: Chrome extension for Twitch and copying and pasting. What UI??
+- Right-click, "Copy Message"? Can I figure out which DOM element was contextmenu'd when I don't own it?
+- If text is selected, can I figure out exactly which one you contextmenu'd? If so, cut short at the selected text OF THAT MESSAGE.
+*/
+
 //Map tab IDs to the time when they may again be automuted
 const nomute = {};
 //Map tab IDs to true if they were automuted, false if not
