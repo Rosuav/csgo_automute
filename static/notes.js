@@ -79,10 +79,10 @@ function find_next(info) {
 	//associated with the PREVIOUS round), but for playback, we want to link freeze
 	//to the UPCOMING round. So we increment the round number here to match.
 	if (info.phase === "freezetime") info.round++;
-	//If the next recording is for multiple rounds away, mark it as such.
+	//If the next recording is for a future round, mark it as such.
 	document.querySelectorAll("li[data-round]").forEach(li => {
 		const rd = li.dataset.round - info.round;
-		li.querySelector("summary").dataset.future = rd > 2 ? rd + " rd" : "";
+		li.querySelector("summary").dataset.future = rd > 0 ? rd + " rd" : "";
 	});
 	//let msg = info.phase;
 	metadata.recordings.forEach(rec => {
