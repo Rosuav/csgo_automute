@@ -1,5 +1,5 @@
 import choc, {set_content} from "https://rosuav.github.io/shed/chocfactory.js";
-const {AUDIO, B, BUTTON, DETAILS, DIV, INPUT, LI, P, PRE, SPAN, SUMMARY} = choc;
+const {AUDIO, B, BUTTON, DETAILS, DIV, INPUT, LI, P, PRE, SPAN, SUMMARY, VIDEO} = choc;
 
 const block = parseInt(window.location.hash.substr(1), 10); //If NaN, we don't have block info
 
@@ -9,7 +9,11 @@ function select_recording(which, wrap) {
 	for (const li of document.getElementById("recordings").children) {
 		const sel = parseInt(li.dataset.id, 10) === current_recording;
 		li.firstChild.open = sel;
-		if (sel) {li.querySelector("input").focus(); wrap = false;}
+		if (sel) {
+			wrap = false;
+			const inp = li.querySelector("input")
+			if (inp) inp.focus();
+		}
 	}
 	if (wrap) select_recording(1); //Without wrap, so we can't infinitely loop on no recordings
 }
@@ -46,13 +50,18 @@ function update_inversions(el) {
 function render_recording(rec) {
 	const times = {className: "inverted", "data-time": rec.time, "data-bombtime": rec.bombtime};
 	return LI({"data-id": rec.id, "data-round": rec.round}, DETAILS({onclick: click_recording}, [
-		SUMMARY([
+		SUMMARY( rec.type === "video" ? [
+			"R" + rec.round + " ",
+			"Video", //Should this be adorned or formatted in any way? NOT bold, that's for normal transcriptions.
+		] : [
 			"R" + rec.round + " ",
 			B(rec.google),
 			rec.spec[0] && ` (${rec.spec[1]}-${rec.spec[0]})`,
 			rec.time && update_inversions(SPAN(times, rec.time.toFixed(1) + "s")),
 		]),
-		DIV([ //Formatting shim b/c making details display:flex doesn't seem to work.
+		rec.type === "video" ?
+			VIDEO()
+		: DIV([ //Formatting shim b/c making details display:flex doesn't seem to work.
 			rec.time && SPAN([`At ${rec.time.toFixed(1)}s `, update_inversions(B(times))]),
 			rec.spec[0] && SPAN(`Spectating ${rec.spec[0]} (${rec.spec[1]})`),
 			PRE(rec.sphinx.join("\n") + "\n" + rec.google),
