@@ -31,6 +31,10 @@ audio {
 	height: 1.5em;
 }
 
+video {
+	max-height: 360px;
+}
+
 details {position: relative;}
 details[open] > summary[data-future$=" rd"]:after {
 	content: "* " attr(data-future) " *";

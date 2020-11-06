@@ -60,7 +60,7 @@ function render_recording(rec) {
 			rec.time && update_inversions(SPAN(times, rec.time.toFixed(1) + "s")),
 		]),
 		rec.type === "video" ?
-			VIDEO()
+			VIDEO({controls: true, preload: "auto", src: "/recordings/" + encodeURIComponent(block + rec.filename)})
 		: DIV([ //Formatting shim b/c making details display:flex doesn't seem to work.
 			rec.time && SPAN([`At ${rec.time.toFixed(1)}s `, update_inversions(B(times))]),
 			rec.spec[0] && SPAN(`Spectating ${rec.spec[0]} (${rec.spec[1]})`),
