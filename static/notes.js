@@ -51,8 +51,7 @@ function render_recording(rec) {
 	const times = {className: "inverted", "data-time": rec.time, "data-bombtime": rec.bombtime};
 	return LI({"data-id": rec.id, "data-round": rec.round}, DETAILS({onclick: click_recording}, [
 		SUMMARY( rec.type === "video" ? [
-			"R" + rec.round + " ",
-			"Video", //Should this be adorned or formatted in any way? NOT bold, that's for normal transcriptions.
+			"Video",
 		] : [
 			"R" + rec.round + " ",
 			B(rec.google),
