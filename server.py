@@ -152,6 +152,7 @@ class State:
 	playing = False # Are we even playing the game? What IS this?
 	round_timer = { } # How long is a round (counting just after freeze time ends)? How long is the bomb timer?
 	players = { } # Map observer slot to steam ID for all known players
+	player_state = { } # Whatever info the game tells us about the player. Should include health, armor, etc.
 
 @route.get("/status") # deprecated
 async def round_status(req):
@@ -178,6 +179,7 @@ async def round_status_json(req):
 		"score": [State.ct_score, State.t_score],
 		"time": (time.time() - State.round_start) if State.round_start else None,
 		"bombtime": (time.time() - State.bomb_plant) if State.bomb_plant else None,
+		"player_state": State.player_state,
 	}
 	if State.round_start: resp["desc"] += " (%.1fs)" % (time.time() - State.round_start)
 	if State.bomb_plant: resp["desc"] += " (b%.1fs)" % (time.time() - State.bomb_plant)
@@ -261,6 +263,7 @@ async def update_configs(req):
 	State.ct_score = lookup(data, "map:team_ct:score", "--")
 	State.t_score = lookup(data, "map:team_t:score", "--")
 	State.round_desc = "R%d" % round
+	State.player_state = lookup(data, "player:state", { })
 	# TODO: Record as many observer slot entries (by steamid) as possible,
 	# to try to "fingerprint" the match. The chances that two comp matches
 	# have the same people in them are very low, so even if we have only
@@ -289,6 +292,8 @@ async def update_configs(req):
 		State.round_desc += " spec-%s-%s" % (State.spec_slot, State.spec)
 	else:
 		State.spec = State.spec_slot = None
+		if State.player_state.get("health", -1) == 0:
+			State.round_desc += " dead"
 	# print(State.round_desc, "%.1fs" % (time.time() - State.round_start) if State.round_start else "")
 	if "previously" in data: del data["previously"] # These two are always uninteresting.
 	if "added" in data: del data["added"]

@@ -56,6 +56,7 @@ function render_recording(rec) {
 			"R" + rec.round + " ",
 			B(rec.google),
 			rec.spec[0] && ` (${rec.spec[1]}-${rec.spec[0]})`,
+			rec.player_state && rec.player_state.health === 0 && " (dead)",
 			rec.time && update_inversions(SPAN(times, rec.time.toFixed(1) + "s")),
 		]),
 		rec.type === "video" ?
