@@ -78,7 +78,3 @@ function setup_socket() {
 	socket.onclose = () => {socket = null; setTimeout(setup_socket, 5000);};
 }
 setup_socket();
-
-function socksend(type, data) {
-	if (socket) socket.send(JSON.stringify({type, data}));
-}
